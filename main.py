@@ -17,6 +17,7 @@ from scripts.migrate_category_icons import migrate_category_icons
 
 from api.auth import is_authorized
 from api.core.blind_mode import is_blind_mode
+from api.core.git_info import get_git_version_info
 
 USER = os.environ.get("USER")
 
@@ -35,6 +36,10 @@ except Exception:
     logging.getLogger("pelican-ui.startup").exception("Category icon migration failed at startup")
 
 app = FastAPI()
+# Computed once here rather than per-request — see get_git_version_info's
+# docstring-equivalent comment for why startup-time caching is correct
+# for this Passenger-restart deployment model.
+app.state.git_version = get_git_version_info()
 app.include_router(datasetRouter)
 app.include_router(pelicanRouter)
 app.include_router(localRouter)
@@ -104,7 +109,7 @@ async def category_page(category, request: Request):
 async def admin_page(request: Request):
     if not is_authorized(USER):
         raise HTTPException(status_code=403, detail="Not Authorized")
-    return templates.TemplateResponse(request, "admin.html", {"ROOT_URL": request.scope.get('root_path', ''),  "USER": USER})
+    return templates.TemplateResponse(request, "admin.html", {"ROOT_URL": request.scope.get('root_path', ''),  "USER": USER, "GIT_VERSION": app.state.git_version})
 
 @app.get('/downloads', response_class=HTMLResponse)
 async def downloads_page(request: Request):

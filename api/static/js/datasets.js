@@ -308,6 +308,21 @@ function initDatasetFilters(datasets, categories) {
  * @param {HTMLElement} dataset
  */
 
+// GitHub issue #5: dataset["format"] is manually typed free text on the
+// admin add/edit form (api/routes/database.py's DatasetCreate.format), never
+// computed from a dataset's real contents — the indexing worker's own walk
+// (scripts/indexing_worker.py) only ever aggregates per-folder byte totals,
+// it doesn't see individual filenames/extensions at all. So a "real" but
+// incidental non-matching file (confirmed live on NOAA GOES-17, labeled
+// "nc": an auto-generated AWS Open Data bucket index.html sitting at the
+// dataset root, its actual .nc science files everywhere beneath it) will
+// never be reflected here regardless of how carefully format was chosen.
+// The format badge's title attribute below says so rather than implying
+// the label is exhaustive — see this issue's investigation notes for why a
+// computed multi-type feature isn't recommended: it would need new
+// per-file tracking that doesn't exist today, and would need to filter out
+// exactly this kind of incidental bucket-browsing artifact to avoid being
+// noisier than the single-string label it would replace.
 function addDatasetCard(dataset) {
   try {
     const newCard = document.createElement("div");
@@ -324,7 +339,7 @@ function addDatasetCard(dataset) {
                     <span class="arrow"></span>
                 </div>
                 <div class="dataset-meta-row">
-                  ${dataset["format"] ? `<span class="dataset-meta-badge dataset-meta-format"><i class="fa fa-file-o"></i>${dataset["format"]}</span>` : ""}
+                  ${dataset["format"] ? `<span class="dataset-meta-badge dataset-meta-format" title="Predominant file type — manually set by whoever added this dataset; a small number of incidental files (e.g. an auto-generated index page) may not match"><i class="fa fa-file-o"></i>${dataset["format"]}</span>` : ""}
                   <span class="dataset-meta-badge ${dataset["streamable"] ? "dataset-meta-streamable" : "dataset-meta-static"}">
                     <i class="fa ${dataset["streamable"] ? "fa-bolt" : "fa-download"}"></i>${dataset["streamable"] ? "Streamable" : "Download only"}
                   </span>

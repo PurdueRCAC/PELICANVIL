@@ -55,5 +55,8 @@
         <input type="checkbox" class="admin-misc-toggle-input" {% if BLIND_MODE %}checked{% endif %}>
         <span class="admin-misc-toggle-track"></span>
     </label>
+    <div class="admin-version-indicator{% if GIT_VERSION.dirty %} admin-version-indicator--dirty{% endif %}" title="Running commit (dev diagnostic)">
+        {% if GIT_VERSION.available %}{{ GIT_VERSION.hash }}{% if GIT_VERSION.dirty %}-dirty{% endif %} &middot; {{ GIT_VERSION.commit_time }}{% else %}unknown{% endif %}
+    </div>
 </body>
 </html>

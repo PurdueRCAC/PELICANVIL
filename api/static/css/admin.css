@@ -591,3 +591,24 @@
     background-color: var(--accent, #cfb991);
 }
 /* #endregion */
+
+/* #region version indicator */
+/* Dev-only diagnostic (admin panel only): confirms which git commit this
+   Passenger process actually loaded, since it doesn't autoreload on edits. */
+.admin-version-indicator {
+    position: fixed;
+    bottom: 6px;
+    right: 10px;
+    font-size: 10px;
+    line-height: 1;
+    color: var(--text-muted, #888);
+    opacity: 0.45;
+    pointer-events: none;
+    user-select: text;
+    z-index: 1;
+}
+.admin-version-indicator--dirty {
+    color: var(--accent-text, #cfb991);
+    opacity: 0.55;
+}
+/* #endregion */
