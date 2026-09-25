@@ -1,0 +1,6 @@
+# Test-only dependencies. The app's own dependencies come from pyproject.toml / uv.lock
+# (tests/pelicanvil_tests.sbatch setup exports the lock and installs it alongside these).
+pytest>=8
+pyyaml>=6
+waitress>=3
+requests>=2.31
