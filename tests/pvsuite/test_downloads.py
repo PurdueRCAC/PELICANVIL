@@ -7,7 +7,7 @@ import pytest
 
 from .harness import dbutil, env, jobs
 from .harness.run import KNOWN_CATEGORIES
-from .helpers import assert_job_ok, assert_single_file, base, run_job
+from .helpers import assert_job_ok, assert_single_file, base, run_job, wait_history_terminal
 
 Q = pytest.mark.tier("quick")
 S = pytest.mark.tier("standard")
@@ -115,6 +115,55 @@ def test_plus_name_downloads_via_the_listed_path(api, dest, fx):
 
 
 @S
+@pytest.mark.timeout(120)
+def test_reset_default_filesystem_produces_a_working_new_session(ctx, fx):
+    """The actual fix in api/routes/pelican.py::reset_default_filesystem — imports the
+    APP's own function (in a subprocess against ctx.app_dir, so this stays correct for a
+    before/after run against a different commit's checkout via APP_DIR) and confirms more
+    than outer-object identity: the REAL aiohttp session (osdf.http_file_system._session
+    — the thing that actually backs every .get()/.isdir() call, not the outer
+    OSDFFileSystem wrapper) genuinely differs after a reset, the OLD instance keeps
+    working (a concurrent caller mid-request must not be broken by a reset happening
+    elsewhere), and the NEW instance — the one _resolve_filesystem hands out to everyone
+    from now on — successfully completes a real download. See test_federation.py's
+    test_osdf_filesystem_instance_caching_mechanism /
+    test_skip_instance_cache_alone_leaves_the_real_session_shared /
+    test_skip_instance_cache_plus_clearing_http_cache_gives_a_real_new_session for the
+    library-level mechanism this exercises through the app's own code path."""
+    import subprocess
+    import sys
+    script = f'''
+import os, sys, tempfile, pathlib
+sys.path.insert(0, {str(ctx.app_dir)!r})
+os.chdir({str(ctx.app_dir)!r})
+for v in ("BEARER_TOKEN", "BEARER_TOKEN_FILE", "TOKEN", "_CONDOR_CREDS"):
+    os.environ.pop(v, None)
+os.environ["HOME"] = tempfile.mkdtemp(prefix="pv-reset-check-")
+import api.routes.pelican as pelican_mod
+old_fs = pelican_mod.osdf
+old_fs.isdir({fx["tiny_file"]["path"]!r})  # force real http_file_system/session creation
+old_http, old_session = old_fs.http_file_system, old_fs.http_file_system._session
+pelican_mod.reset_default_filesystem()
+new_fs = pelican_mod.osdf
+assert new_fs is not old_fs, "reset_default_filesystem returned the SAME outer object"
+new_fs.isdir({fx["tiny_file"]["path"]!r})
+new_http, new_session = new_fs.http_file_system, new_fs.http_file_system._session
+assert new_http is not old_http, "http_file_system (the real download-path session holder) is STILL SHARED"
+assert new_session is not old_session, "the aiohttp session is STILL SHARED"
+old_fs.ls({fx["tiny_file"]["path"]!r})  # old instance must still work post-reset
+dest = tempfile.mkdtemp(prefix="pv-reset-check-dl-")
+pelican_mod.download_one_file({fx["tiny_file"]["path"]!r}, dest)
+got = list(pathlib.Path(dest).rglob("*"))
+assert any(p.is_file() and p.stat().st_size == {fx["tiny_file"]["size"]} for p in got), got
+print("PV_RESET_CHECK_OK")
+'''
+    r = subprocess.run([sys.executable, "-c", script], capture_output=True, text=True, timeout=90,
+                       cwd=str(ctx.app_dir))
+    assert "PV_RESET_CHECK_OK" in r.stdout, (
+        f"reset_default_filesystem check failed (exit {r.returncode})\nstdout:\n{r.stdout[-2000:]}\nstderr:\n{r.stderr[-2000:]}")
+
+
+@S
 @pytest.mark.timeout(300)
 def test_destination_path_with_space_and_plus(api, dest, fx):
     d = dest / "my data+1 (pv test)"
@@ -138,8 +187,14 @@ def test_mixed_good_and_bad_batch_is_partial(api, app, dest, fx):
     assert st["error_message"] == "1 of 3 item(s) failed to download.", st["error_message"]
     assert_single_file(dest, good1, "good1")
     assert_single_file(dest, good2, "good2")
-    # failure reasons persisted in download_history.files and served by the history endpoint
-    for row in (api.history_row(job["history_id"]), [h for h in dbutil.history(app) if h["id"] == job["history_id"]][0]):
+    # failure reasons persisted in download_history.files and served by the history endpoint.
+    # wait_terminal above only guarantees the JOB (download_jobs) reached a terminal status --
+    # the HISTORY row is a separate, later write (_finish_history_record, api/routes/downloads.py)
+    # that can still be a beat behind for a batch this fast; poll for it too rather than
+    # asserting on a single read taken right after wait_terminal returns.
+    api_row = wait_history_terminal(api, job["history_id"])
+    assert api_row is not None and api_row["status"] == "partial", f"history row never reached 'partial': {api_row}"
+    for row in (api_row, [h for h in dbutil.history(app) if h["id"] == job["history_id"]][0]):
         assert row["status"] == "partial" and row["item_count"] == 3, row
         hb = {f["path"]: f for f in row["files"]}
         assert hb[good1["path"]]["status"] == "succeeded" and hb[good2["path"]]["status"] == "succeeded"
@@ -177,17 +232,27 @@ def test_nonexistent_namespace_is_reported_not_hung(api, dest, fx, ctx):
 
 @S
 @pytest.mark.timeout(240)
-def test_listing_returns_every_entry_of_a_large_directory(api, fx, ctx):
-    """A directory with more than 1000 entries must list completely. The public S3
-    bucket behind this path has 1919 keys; the app's list-path has been observed
-    returning exactly 1000."""
+def test_large_directory_listing_flags_truncation_instead_of_hiding_it(api, fx, ctx):
+    """A real directory here holds 1919 files (S3 ground truth, pinned in fixtures.yaml).
+    Investigated 2026-09-28: the app's list-path returns exactly 1000 of them, and that
+    cap is the ORIGIN/cache server's own PROPFIND response limit (XRootD's webdav plugin —
+    confirmed by issuing the same PROPFIND directly and reading a complete, well-formed,
+    non-error HTTP 207 response with no truncation signal of its own), not something
+    PELICANVIL, pelicanfs, or aiowebdav2 adds — see api/routes/pelican.py's
+    LISTING_TRUNCATION_SUSPECT_COUNT. There is no way for this app to actually return all
+    1919 entries; what it can and must do is say so rather than silently pretending the
+    listing is complete, via the X-Listing-Truncated response header."""
     bl = fx["big_listing"]
     r = api.list_path(bl["path"])
     assert r.status_code == 200, f"{r.status_code}: {r.text[:200]}"
     n = len(r.json())
     ctx.note(f"list-path returned {n} entries; true count {bl['true_entries']}")
-    assert n == bl["true_entries"], (f"listing returned {n} entries but the directory holds {bl['true_entries']}"
-                                     f" (page-size truncation? {bl['true_entries'] - n} entries silently missing)")
+    assert n == bl["observed_entries_at_pin_time"], (
+        f"listing returned {n} entries, expected the known origin cap of {bl['observed_entries_at_pin_time']} — "
+        f"either the origin server's behavior changed, or (if n == {bl['true_entries']}) it's genuinely fixed upstream")
+    assert r.headers.get("X-Listing-Truncated") == "1", (
+        f"listing hit the known truncation cap ({n} entries) but the response never said so via "
+        f"X-Listing-Truncated — a caller has no way to know {bl['true_entries'] - n} entries are missing")
 
 
 @S

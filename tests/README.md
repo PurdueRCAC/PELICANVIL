@@ -22,7 +22,7 @@ checkout is taken from the submit directory (or `SUITE_DIR=`).
 | depth | contents | typical time |
 |---|---|---|
 | **quick** | preflight canary; app boots and every page renders; DB basics (history/job rows created, updated, listed, deleted through the API; schema init idempotent across restarts); one small file verified by sha256; a real 404 (`not_found` with a reason); a real token-required namespace with no token (`auth_required`, 401 shape); real `~/.pelican-ui` untouched | ~5 min (about 15 s of tests once the venv exists) |
-| **standard** | quick + small nested directory (exact expected tree, none of the stray host-named folders or HTML-as-file from issue #3); a `+`/space name; destination path with space and `+`; unwritable destination then Restart (chmod, `permission`); mixed good+bad batch (`partial`, reasons persisted); whole-record and per-file Restart; listing completeness for a >1000-entry directory; an existing file requested right after a 404 in the same namespace (through the app **and** through pelicanfs alone, to attribute failures); concurrency (5 jobs at once: never more than 3 `in_progress`, the rest `pending` until a slot frees, one history row per job, no `database is locked`); directory listing while downloads run; UI-equivalent-vs-`pelican` CLI parity (SKIPs if the CLI is absent); **kill -9 mid-download** then restart (same job_id resumed, succeeded items untouched, no truncated file, no duplicate history rows); DB consistency invariants | ~10-30 min |
+| **standard** | quick + small nested directory (exact expected tree, none of the stray host-named folders or HTML-as-file from issue #3); a `+`/space name; destination path with space and `+`; unwritable destination then Restart (chmod, `permission`); mixed good+bad batch (`partial`, reasons persisted); whole-record and per-file Restart; truncation flagged (not silently hidden) for a >1000-entry directory listing; an existing file requested right after a 404 in the same namespace (through the app **and** through pelicanfs alone, to attribute failures); concurrency (5 jobs at once: never more than 3 `in_progress`, the rest `pending` until a slot frees, one history row per job, no `database is locked`); directory listing while downloads run; UI-equivalent-vs-`pelican` CLI parity (SKIPs if the CLI is absent); **kill -9 mid-download** then restart (same job_id resumed, succeeded items untouched, no truncated file, no duplicate history rows); DB consistency invariants | ~10-30 min |
 | **deep** | standard under **both** server modes (plain `uvicorn` and `wsgi` = `passenger_wsgi:application` via a2wsgi under waitress) + a 1,200-file directory job (~10 min); a **long job** over a whole GOES day (24 directories, 2,833 files, ~24 min, capped by `DURATION`); the concurrency test x `REPS`; a 24-job queue; repeated kill/recover cycles (at job start, between items, near the end, twice in a row) x `REPS`; three larger files concurrently; the same file requested twice into one destination (behaviour documented); deleting a history record while its job runs; a duration-based soak; CLI parity on a 64 MiB file | hours (defaults: roughly 2.5-3.5 h; measured 32 min with `REPS=1 DURATION=240 SOAK_DURATION=90`) |
 
 No test is automatically retried: a flaky pass is signal. Repeated tests report pass rates in the summary.
@@ -43,7 +43,7 @@ Export them, or prefix the command (`ONLY=kill sbatch tests/pelicanvil_tests.sba
 | `STALL_SECONDS`, `LONG_STALL_SECONDS` | a job with no change to per-file status *or* bytes on disk for this long is a `STALL` failure (defaults 600 / 1200) |
 | `LONG_MAX_GB` | scratch cap for the long job (default 20) |
 | `PV_PYTHON`, `TEST_VENV` | interpreter / venv (default venv: `/anvil/scratch/$USER/pelicanvil-tests/venv`) |
-| `PELICAN_BIN` | path to the `pelican` CLI for the parity tests |
+| `PELICAN_BIN` | path to the `pelican` CLI for the parity tests — overrides the automatic `module load pelican` (see below) |
 | `PV_MODULES` | modules to `module load` first, e.g. `python/3.11` |
 | `KEEP_DATA=1` | keep downloaded data even on a fully passing run |
 
@@ -111,22 +111,37 @@ block a "no token" test for minutes). All of it is neutralised: those variables 
 app's `PATH`. Proxy variables are removed. Log output is redacted for bearer tokens / JWTs. The last test of a
 run verifies the real `~/.pelican-ui` did not change.
 
-## What the first runs found (commit `0f0c48f`, 2026-09-24, from a Windows dev box and a Linux box)
+## What the first runs found, and what was fixed (2026-09-28)
 
-These are the suite doing its job, not harness problems; expect these FAILs until they are addressed:
+Three real Anvil runs (quick, standard, deep) against commit `0f0c48f` found the following. Three real app bugs
+have since been fixed (`reset_default_filesystem`, the `+`-name filename bug, and the listing-truncation flag —
+all in `api/routes/pelican.py`, plus a small, additive-only JS change for the last one); the dead `/about` route
+was removed (`main.py`); two test-only findings (timing races under real load) were fixed in the tests themselves;
+the pre-fix `kill` STALL is expected, already-addressed behaviour, not something this pass touched. Re-run any of
+the specific tests named below to reproduce/verify.
 
-| test | finding |
-|---|---|
-| `boot::page_renders[...-about]` | `GET /about` is a 500: `api/templates/about.html` does not exist (`main.py`, the `/about` route). |
-| `downloads::plus_name_downloads_via_the_listed_path` | The `+` file downloads with correct content but is **saved as `FFC_Profile_Measurement%2B1.xml`** (percent-encoded on disk). |
-| `downloads::listing_returns_every_entry_of_a_large_directory` | The list endpoint returns exactly **1000** entries for a directory with 1,919 objects (S3 truth), so directory downloads of such folders would silently omit files. |
-| `downloads::existing_file_after_a_404_in_the_same_namespace_still_downloads` and `federation::pelicanfs_direct_...` | **Environment-dependent, so it may or may not fail on Anvil.** From a Windows dev box: after a genuine 404 for one path, the next request for an *existing* file in the same namespace failed with a false `not_found` in 5/8 app rounds and 4/12 pelicanfs-only rounds (controls: 25/25 and 6/6 ok; a 404 in a *different* namespace never caused it; a fresh **process** never showed it). From a WSL/Linux box the same tests passed 8/8 and 12/12. Mechanism (read from pelicanfs 1.3.1 source, supported by pelicanfs debug logs): any transfer exception, including a 404 for a nonexistent object, makes pelicanfs `bad_cache()` drop that cache from the namespace's list, and the state lives in the process for the life of the filesystem instance (15 min TTL); whether the next cache in the list serves a cold object depends on which caches the director returns for the client's location. `not_found` is never retried by the app. Look for `FALSE not_found` in the summary and `Marking cache at ... as bad` in `server-logs/*.log`. |
-| `federation::reset_shaped_construction_yields_a_fresh_filesystem` | `OSDFFileSystem(direct_reads=False)` returns the **identical cached object** every time (fsspec instance cache; only `skip_instance_cache=True` differs), so `reset_default_filesystem()` in `api/routes/pelican.py` (which constructs it again) does not actually reset the session or the namespace/bad-cache state. |
-| `kill::kill_mid_download_resumes_the_same_job` on `4766e6d` | `[STALL]`: the job stays `in_progress` forever after the process is killed (the reporter's days-old orphaned jobs). Passes on `0f0c48f` (the job resumes in ~20 s). |
+| finding | root cause | fix |
+|---|---|---|
+| `reset_default_filesystem()` was a no-op | Confirmed against real pelicanfs 1.3.1/fsspec 2026.6.0, two layers deep: (1) fsspec's caching metaclass returns the *same* `OSDFFileSystem` for identical args regardless of `skip_instance_cache` propagation quirks noted below; (2) even once the *outer* object is made genuinely new (`skip_instance_cache=True`), `OSDFFileSystem.__init__` separately constructs its own `fsspec.implementations.http.HTTPFileSystem` — the thing that actually holds the aiohttp session behind every `.get()`/`.isdir()`/`.open()` call — and *that* inner construction is an ordinary, separately-cached fsspec call that never receives `skip_instance_cache` (fsspec pops it off before `__init__` runs). Two "genuinely different" `OSDFFileSystem` objects built with only `skip_instance_cache=True` were confirmed to still share the exact same `http_file_system` and aiohttp session. `.ls()`/listing was never affected — pelicanfs already opens a fresh WebDAV session per call there. | `api/routes/pelican.py`'s `reset_default_filesystem()`: `HTTPFileSystem.clear_instance_cache()` (empties that class's cache table so the imminent inner construction misses it) followed by `OSDFFileSystem(direct_reads=False, skip_instance_cache=True)`. Confirmed via `osdf.http_file_system` / `osdf.http_file_system._session` identity, not just outer-object identity — see `tests/pvsuite/test_federation.py`'s three `test_*instance_cach*`/`test_skip_instance_cache_*` tests (one deliberately demonstrates the half-fix still failing) and `test_downloads.py::test_reset_default_filesystem_produces_a_working_new_session`. |
+| `downloads::plus_name_downloads_via_the_listed_path` | The `+` file downloaded with correct content but was **saved as `FFC_Profile_Measurement%2B1.xml`** — `download_one_file`'s single-file path handed `fs.get()` the percent-encoded path as both the thing to fetch *and* (fsspec derives the local filename from that same string) the source of the output filename. The directory-download path already avoided this by computing each destination filename explicitly from the clean path. | `download_one_file` (`api/routes/pelican.py`) now does the same for the single-file case: computes `local_path` from the clean, un-encoded `path` and calls `fs.get_file(encoded_path, local_path)` instead of `fs.get(encoded_path, storage_location, recursive=True)`. Re-verified against the real fixture: correct filename, size, and sha256. |
+| `downloads::listing_returns_every_entry_of_a_large_directory` | A real directory with 1,919 objects (S3 ground truth) returns exactly **1,000** through `/datasets/category/list-path`. Traced by issuing the same PROPFIND directly: the origin server (XRootD's webdav plugin, confirmed via its own `Server: XrootD/v5.9.2` header) returns a complete, well-formed, non-error HTTP 207 capped at 1,000 `<D:response>` entries — no truncation signal of any kind. **This is the origin server's own behavior, not PELICANVIL's, pelicanfs's, or aiowebdav2's** — there is no page size to raise and no continuation cursor to follow. | Not fixable at this layer, so made honest instead of silent: `pelicanlistPath` sets an `X-Listing-Truncated: 1` response header when the listing hits the known 1,000-entry cap (`LISTING_TRUNCATION_SUSPECT_COUNT`); the JSON body shape is unchanged (backward compatible). `datasets.js`/`quick-access.js` check the header and toast "This folder has more than 1000 items — only the first 1000 are shown." The test (renamed `test_large_directory_listing_flags_truncation_instead_of_hiding_it`) now asserts the header is set, not that the full 1,919 come back. |
+| `kill::kill_mid_download_resumes_the_same_job` on `4766e6d` | `[STALL]`: the job stays `in_progress` forever after the process is killed (the reporter's days-old orphaned jobs). | Unrelated to this fix pass — this is what commits `cdfb44f`/`900e898` already fixed. Passes on `0f0c48f` (the job resumes in ~20 s); kept failing on `4766e6d` is the suite correctly detecting the pre-fix behaviour (see "Before/after" below). |
+| `boot::page_renders[...-about]` | `GET /about` was a 500: `api/templates/about.html` never existed. Investigated: `/about` was never linked from the navbar or any page (only Explore Datasets, Quick Access, Downloads, Docs are) — **a route that was never fully wired up, not a regression**. | Removed the dead route (`main.py`) rather than fabricating page content. `/about` now cleanly 404s — see `test_boot.py::test_about_route_removed`; the page-render parametrize list no longer includes it. |
+| `concurrency::directory_listing_works_while_downloads_run` on deep | Only 3 of the required 5+ listings overlapped the downloads under deep tier's heavier concurrent load (29 on standard, same test) — contention from everything else deep tier runs at once, not a regression. | **Test-only fix**: the required overlap count now scales by `ctx.depth` (`MIN_LISTING_OVERLAP_BY_DEPTH` in `test_concurrency.py`: 5 at standard, 2 at deep) instead of a flat 5 regardless of load. |
+| `downloads::mixed_good_and_bad_batch_is_partial` on standard | Flaked once: `wait_terminal` correctly waits for the **job** (`download_jobs` table) to reach a terminal status, but the test then read the **history** row (`download_history`, a separate, later DB write — see `_run_download_job` in `api/routes/downloads.py`) once, immediately, with no wait of its own; for a batch fast enough (2.2s for 3 tiny files) the history write can still be a beat behind. | **Test-only fix**: added `wait_history_terminal()` (`tests/pvsuite/helpers.py`) and used it before asserting on the history row, instead of a one-shot read right after `wait_terminal` returns. |
+| `downloads::existing_file_after_a_404_in_the_same_namespace_still_downloads` / `federation::pelicanfs_direct_...` | **Separately documented, environment-dependent pelicanfs behavior, not in scope for this fix pass** (not one of the numbered items) and unrelated to any of the fixes above. On this Windows dev box: after a genuine 404, the next request for an *existing* file in the same namespace intermittently fails with a false `not_found` (pelicanfs's own `bad_cache()` dropping a cache after any transfer exception, including a 404). Passed 8/8 and 12/12 from a Linux box; failed 6/12 again on this Windows box during this pass's final full regression run — genuinely environment-dependent, not something this pass's fixes touch. |
 
-Also observed (cause not verified): after SIGTERM, a test server with a download in flight lingered for minutes
-instead of exiting (probably the non-daemon download-executor threads), which may matter for Passenger restarts.
-The harness itself always ends servers with SIGKILL after a short grace period.
+Also observed (cause not verified, unrelated to the fixes above): after SIGTERM, a test server with a download in
+flight lingered for minutes instead of exiting (probably the non-daemon download-executor threads), which may
+matter for Passenger restarts. The harness itself always ends servers with SIGKILL after a short grace period.
+
+Also investigated: `/documentation` was reported with a connection reset (not a clean 500) during one standard run.
+`docs.html`/the `documentation_page` route are a normal, static, fully-implemented page with no server-side
+computation that could crash a worker — confirmed by reading both, and by hammering `/documentation` with 300
+concurrent requests against a real server while a real download job ran (all 300 returned 200, no errors). Could
+not reproduce; most likely a one-off Anvil-side network blip rather than an app defect. Flagged as unverified
+without a fresh Anvil run — re-run `boot::page_renders[...-documentation]` a few times if it recurs and capture
+the server log tail from `failures/`.
 
 ## Known limits (also printed in every log)
 
@@ -147,7 +162,8 @@ yields `BadDirectorResponse`, which the app treats as a connection failure), and
 
 Notes discovered while pinning: the `+`/space fixture's S3 key contains a real **space** but the federation lists
 and serves it as `Measurement+1.xml` (a literal space or `%20` is a 404); the `big_listing` directory holds 1,919
-objects (S3 truth) but the app's list endpoint returned 1,000.
+objects (S3 truth) but the app's list endpoint returns exactly 1,000 (the origin server's own cap — see the fixes
+table above) and flags it via the `X-Listing-Truncated` response header rather than pretending the listing is complete.
 
 To re-pin an entry (paths are federation paths, e.g. `/aws-opendata/...`):
 ```bash
@@ -166,6 +182,11 @@ The suite needs Python >= 3.11, the app's dependencies, and `pytest pyyaml reque
 `/anvil/scratch/$USER/pelicanvil-tests/venv` from `uv.lock` (with `uv`) or pip. The job builds it on first use if
 compute nodes have network access; otherwise run `setup` once. To use an existing interpreter, `PV_PYTHON=...`.
 Without `waitress`, `SERVER=wsgi` tests are **SKIPPED and reported loudly**, not silently dropped.
+
+The sbatch script also runs `module load pelican` automatically (unless `PELICAN_BIN` is already set), so the
+CLI-parity tests (`test_parity.py`) run instead of silently skipping — previously the `PELICAN_BIN` override
+existed but nothing ever loaded the module providing it. If `pelican` isn't the right module name on a given
+cluster, the load fails loudly (a warning, not a hard error) and the parity tests SKIP with a clear reason.
 
 ## Before/after: prove the suite detects the pre-fix behaviour
 

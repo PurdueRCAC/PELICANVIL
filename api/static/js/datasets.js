@@ -551,6 +551,9 @@ async function makeFolderCards(path, container, download_card, breadcrumbs, isRe
     container.innerHTML = /* html */ `<div class="file-browser-empty-state">This folder is empty.</div>`;
     return;
   }
+  if (paths.truncated) {
+    showToast("This folder has more than 1000 items — only the first 1000 are shown.", "error");
+  }
 
   paths.forEach((folder_path) => {
     const cleanedPath = folder_path.name.replace(/\/$/, "");
@@ -691,6 +694,14 @@ async function retrieveDirectoryPaths(path) {
     }
 
     const paths = await response.json();
+    // X-Listing-Truncated (2026-09-28): the origin server behind some
+    // federation members caps a single directory listing at 1000 entries
+    // with nothing in the response body marking it partial — see
+    // api/routes/pelican.py's LISTING_TRUNCATION_SUSPECT_COUNT. Attached to
+    // the array as a JS-only property (never serialized back over the
+    // wire), not part of the JSON shape itself, so every existing caller of
+    // this array (paths.length, paths.forEach, ...) is unaffected.
+    paths.truncated = response.headers.get("X-Listing-Truncated") === "1";
     return paths;
   } catch (error) {
     console.log("error with", error);

@@ -4,7 +4,7 @@ import pytest
 pytestmark = pytest.mark.tier("quick")
 
 PAGES = [("home", "/"), ("categories", "/datasets"), ("dataset_search", "/datasets/search"),
-         ("quick_access", "/quick-access"), ("downloads", "/downloads"), ("about", "/about"),
+         ("quick_access", "/quick-access"), ("downloads", "/downloads"),
          ("documentation", "/documentation"), ("admin", "/admin")]
 
 
@@ -15,6 +15,16 @@ def test_page_renders(app, api, url):
     r = api.get(url)
     assert r.status_code == 200, f"GET {url} -> {r.status_code}: {r.text[:200]}"
     assert "<html" in r.text.lower(), f"GET {url} did not return an HTML page"
+
+
+@pytest.mark.timeout(60)
+def test_about_route_removed(app, api):
+    """2026-09-28: /about was never linked from anywhere in the app (not the navbar, not
+    any page) and its template never existed -- a route that was never fully wired up,
+    not a regression. Removed from main.py rather than fixed; this just confirms the
+    removal is clean (a real 404, not the 500 it used to be)."""
+    r = api.get("/about")
+    assert r.status_code == 404, f"GET /about -> {r.status_code}, expected a clean 404 now that the route is removed"
 
 
 @pytest.mark.timeout(120)

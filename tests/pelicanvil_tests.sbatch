@@ -17,7 +17,8 @@
 #   SERVER=uvicorn|wsgi|uvicorn,wsgi   server mode(s) (default: uvicorn; deep: both)      LONG_MODES=<modes> for the long job
 #   APP_DIR=<checkout>      app under test (default: this checkout) -- e.g. a `git worktree` of 4766e6d for before/after
 #   PV_PYTHON=<python>      use this interpreter      TEST_VENV=<dir>   test venv (default /anvil/scratch/$USER/pelicanvil-tests/venv)
-#   PELICAN_BIN=<pelican>   pelican CLI for the parity tests      PV_MODULES="python/3.11"  modules to load first
+#   PELICAN_BIN=<pelican>   override the pelican CLI path -- `module load pelican` runs automatically otherwise
+#   PV_MODULES="python/3.11"  additional modules to load first
 #   KEEP_DATA=1             keep downloaded data even on a fully passing run
 #   STALL_SECONDS / LONG_STALL_SECONDS / LONG_MAX_GB  stall thresholds and scratch cap for the long job
 #
@@ -59,6 +60,20 @@ TEST_VENV="${TEST_VENV:-$SCRATCH_BASE/venv}"
 if [ -n "${PV_MODULES:-}" ]; then
     # shellcheck disable=SC1091
     source /etc/profile 2>/dev/null; module load $PV_MODULES || echo "warning: module load $PV_MODULES failed" >&2
+fi
+
+# 2026-09-28: the CLI-parity tests (tests/pvsuite/test_parity.py) were silently
+# SKIPPING on every real run because `pelican` was never on PATH -- PELICAN_BIN
+# lets a caller point at one explicitly, but nothing loaded the module that
+# actually provides it otherwise. Best-effort and non-fatal, same shape as the
+# PV_MODULES block above: if the module load fails (wrong name on a given
+# cluster, or the CLI genuinely isn't available here), the parity tests still
+# SKIP with a clear reason rather than the whole run failing over it.
+if [ -z "${PELICAN_BIN:-}" ]; then
+    # shellcheck disable=SC1091
+    source /etc/profile 2>/dev/null
+    module load pelican 2>/dev/null || echo "warning: 'module load pelican' failed or is unavailable on this cluster;" \
+        "CLI-parity tests will SKIP unless PELICAN_BIN=/path/to/pelican is set" >&2
 fi
 
 py_ok() { "$1" - <<'EOF' >/dev/null 2>&1

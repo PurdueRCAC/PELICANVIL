@@ -73,6 +73,26 @@ def count_files(root) -> int:
     return n
 
 
+def wait_history_terminal(api, history_id, timeout=30, poll=0.2):
+    """download_jobs and download_history are two separate, sequential DB writes
+    at the end of a job (_run_download_job's _update_job(..., status=final_status)
+    THEN _finish_history_record(...) in api/routes/downloads.py) -- wait_terminal
+    (harness/jobs.py) polls /datasets/download/status/{id}, which reads
+    download_jobs, so it can observe a job as terminal a moment before the
+    history row's own write has landed. A caller that needs the HISTORY row
+    (not just the job) must poll it separately rather than assume the two
+    writes are atomic with each other -- found via a real 2026-09-28 Anvil run
+    where a fast (2.2s) three-file batch settling job-terminal well before
+    history-terminal made a one-shot history read after wait_terminal flake."""
+    from .harness.run import TERMINAL
+    t0 = time.time()
+    row = api.history_row(history_id)
+    while (row is None or row["status"] not in TERMINAL) and time.time() - t0 < timeout:
+        time.sleep(poll)
+        row = api.history_row(history_id)
+    return row
+
+
 def wait_for(cond, timeout, poll=0.5, what="condition"):
     t0 = time.time()
     while time.time() - t0 < timeout:

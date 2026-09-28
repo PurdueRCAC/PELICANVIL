@@ -89,10 +89,6 @@ async def main_page(request: Request):
 async def main_page(request: Request):
     return templates.TemplateResponse(request, "quick-access.html", {"ROOT_URL": request.scope.get('root_path', ''),  "USER": USER})
 
-@app.get('/about', response_class=HTMLResponse)
-async def main_page(request: Request):
-    return templates.TemplateResponse(request, "about.html", {"ROOT_URL": request.scope.get('root_path', '')})
-
 @app.get('/documentation', response_class=HTMLResponse)
 async def documentation_page(request: Request):
     return templates.TemplateResponse(request, "docs.html", {"ROOT_URL": request.scope.get('root_path', '')})

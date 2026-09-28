@@ -44,15 +44,80 @@ def test_pelicanfs_direct_existing_file_after_a_404(fx, ctx):
 
 
 @pytest.mark.timeout(120)
-def test_reset_shaped_construction_yields_a_fresh_filesystem(ctx):
-    """api/routes/pelican.py::reset_default_filesystem() 'resets' by constructing
-    OSDFFileSystem(direct_reads=False) again. If that returns the SAME object (fsspec caches
-    instances by their arguments), nothing is reset: the aiohttp session, the per-namespace cache
-    lists and every cache already marked bad all survive, so a reset-then-retry cannot recover from
-    stale-session or bad-cache state. (Library-level identity check; no app code is imported.)"""
+def test_osdf_filesystem_instance_caching_mechanism(ctx):
+    """Documents the underlying fsspec mechanism api/routes/pelican.py::
+    reset_default_filesystem() has to route around, so a library upgrade that changes
+    this behavior shows up here rather than as a silent, unexplained change in the
+    fix's own effectiveness. fsspec's caching metaclass (fsspec.spec._Cached) memoizes
+    a filesystem instance by class + pid + constructor args/kwargs — for a class whose
+    async_impl doesn't include the calling thread in that token (true for
+    OSDFFileSystem constructed the normal synchronous way), plain
+    `OSDFFileSystem(direct_reads=False)` called again returns the IDENTICAL cached
+    instance, same aiohttp session and all. This is exactly what made the pre-fix
+    reset_default_filesystem() (which just called the constructor again) a no-op.
+    (Library-level identity check; no app code is imported.)"""
     from pelicanfs import OSDFFileSystem
     a = OSDFFileSystem(direct_reads=False)
     b = OSDFFileSystem(direct_reads=False)
     ctx.note(f"same object: {a is b}; shares the aiohttp session: {getattr(a, '_session', None) is getattr(b, '_session', None)}")
-    assert a is not b, ("OSDFFileSystem(direct_reads=False) returned the identical cached instance: "
-                        "constructing it again (as reset_default_filesystem() does) does not reset anything")
+    assert a is b, ("OSDFFileSystem(direct_reads=False) returned a DIFFERENT instance than before — "
+                    "if pelicanfs/fsspec's caching behavior has changed, api/routes/pelican.py's own "
+                    "skip_instance_cache=True workaround may no longer be necessary (harmless either way, "
+                    "but worth knowing)")
+
+
+@pytest.mark.timeout(120)
+def test_skip_instance_cache_alone_leaves_the_real_session_shared(ctx):
+    """The half-fix that looked sufficient but wasn't, kept here as a regression guard
+    and to document exactly why api/routes/pelican.py::reset_default_filesystem needs a
+    second step. skip_instance_cache=True (an fsspec-recognized kwarg _Cached.__call__
+    special-cases to skip the cache lookup/store) does make the OUTER OSDFFileSystem a
+    genuinely new object — but OSDFFileSystem.__init__ separately builds its own
+    fsspec.implementations.http.HTTPFileSystem internally
+    (self.http_file_system = fshttp.HTTPFileSystem(...)), and THAT is an ordinary,
+    separately-cached fsspec construction — skip_instance_cache is popped off by the
+    caching metaclass before __init__ ever runs, so it never reaches that inner call.
+    http_file_system (not the outer OSDFFileSystem) is what actually holds the aiohttp
+    session behind every .get()/.isdir()/.open() call — the real download path — so two
+    "genuinely different" OSDFFileSystem objects built this way still shared the exact
+    session that needed resetting. Confirmed directly, not assumed."""
+    from pelicanfs import OSDFFileSystem
+    a = OSDFFileSystem(direct_reads=False)
+    a.isdir("/pelicanplatform/test/hello-world.txt")   # force real http_file_system/session creation
+    b = OSDFFileSystem(direct_reads=False, skip_instance_cache=True)
+    b.isdir("/pelicanplatform/test/hello-world.txt")
+    ctx.note(f"outer objects differ: {a is not b}; "
+             f"http_file_system shared: {a.http_file_system is b.http_file_system}; "
+             f"session shared: {a.http_file_system._session is b.http_file_system._session}")
+    assert a is not b, "skip_instance_cache=True didn't even make the outer object different"
+    assert a.http_file_system is b.http_file_system, (
+        "http_file_system is no longer shared between skip_instance_cache instances — if pelicanfs's own "
+        "__init__ has changed to pass skip_instance_cache down (or to build http_file_system some other way), "
+        "api/routes/pelican.py's reset_default_filesystem may no longer need its own "
+        "HTTPFileSystem.clear_instance_cache() call")
+
+
+@pytest.mark.timeout(120)
+def test_skip_instance_cache_plus_clearing_http_cache_gives_a_real_new_session(ctx):
+    """The actual two-part fix api/routes/pelican.py::reset_default_filesystem uses:
+    HTTPFileSystem.clear_instance_cache() (emptying that class's process-wide lookup
+    table so the imminent inner construction inside OSDFFileSystem.__init__ misses the
+    cache and builds fresh) followed by OSDFFileSystem(..., skip_instance_cache=True).
+    Confirms both the http_file_system object AND the actual aiohttp session it holds
+    are genuinely new — not just the outer OSDFFileSystem wrapper — and that the new
+    instance still works against the real federation. (Library-level; no app code
+    imported — see test_reset_default_filesystem_produces_a_working_new_session in
+    test_downloads.py for the identical check through the app's own function.)"""
+    from pelicanfs import OSDFFileSystem
+    from fsspec.implementations.http import HTTPFileSystem
+    a = OSDFFileSystem(direct_reads=False)
+    a.isdir("/pelicanplatform/test/hello-world.txt")
+    HTTPFileSystem.clear_instance_cache()
+    b = OSDFFileSystem(direct_reads=False, skip_instance_cache=True)
+    b.isdir("/pelicanplatform/test/hello-world.txt")
+    ctx.note(f"http_file_system shared: {a.http_file_system is b.http_file_system}; "
+             f"session shared: {a.http_file_system._session is b.http_file_system._session}")
+    assert a.http_file_system is not b.http_file_system, "http_file_system is still the same object"
+    assert a.http_file_system._session is not b.http_file_system._session, "the aiohttp session is still shared"
+    entries = b.ls("/pelicanplatform/test", detail=True)
+    assert len(entries) > 0, "the freshly constructed instance could not list a real path"
