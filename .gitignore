@@ -37,3 +37,6 @@ data/scratch/
 .playwright-mcp/screenshots/
 
 screenshots/
+# PELICANVIL test-suite run output (tests/pelicanvil_tests.sbatch)
+logs/test-runs/
+pelicanvil-tests-*.out

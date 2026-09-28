@@ -370,6 +370,9 @@ async function makeFolderCards(path, container, download_card, breadcrumbs, isRe
     container.innerHTML = /* html */ `<div class="file-browser-empty-state">This folder is empty.</div>`;
     return;
   }
+  if (paths.truncated) {
+    showToast("This folder has more than 1000 items — only the first 1000 are shown.", "error");
+  }
 
   paths.forEach((folder_path) => {
     const cleanedPath = folder_path.name.replace(/\/$/, "");
@@ -693,6 +696,10 @@ async function retrieveDirectoryPaths(path) {
     }
 
     const paths = await response.json();
+    // X-Listing-Truncated: see the identical comment in datasets.js's copy
+    // of this function (2026-09-28) — a JS-only property, not part of the
+    // JSON shape, so every existing use of this array is unaffected.
+    paths.truncated = response.headers.get("X-Listing-Truncated") === "1";
     return paths;
   } catch (error) {
     console.log("error with", error);

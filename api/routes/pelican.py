@@ -1,5 +1,6 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Response
 from pelicanfs import OSDFFileSystem
+from fsspec.implementations.http import HTTPFileSystem
 import fsspec, os, json, shutil, logging, sqlite3, time
 from pathlib import Path
 from urllib.parse import quote
@@ -40,6 +41,70 @@ def reset_default_filesystem() -> None:
     whatever internal aiohttp session/connector/DNS-resolver state pelicanfs
     holds on the old one is dropped instead of carried forward.
 
+    2026-09-28 fix: this used to just do `OSDFFileSystem(direct_reads=False)`
+    again, which is a no-op — confirmed directly against pelicanfs 1.3.1 /
+    fsspec 2026.6.0. fsspec filesystem classes use a caching metaclass
+    (fsspec.spec._Cached): construction is memoized by a token derived from
+    the class, the process id, and the constructor's args/kwargs (see
+    _Cached.__call__ in fsspec/spec.py), and — for an async-implemented class
+    instantiated the normal synchronous way, which is what OSDFFileSystem()
+    is here — that token does NOT include the calling thread, so every
+    thread in this process asking for `OSDFFileSystem(direct_reads=False)`
+    gets back the literal same cached instance, same aiohttp session and
+    all. So the old "reset" was just looking up and returning the exact
+    object it meant to replace; nothing was ever dropped.
+
+    The fix has two parts, both needed — confirmed by direct inspection,
+    not assumed from either library's docs:
+
+    1. `skip_instance_cache=True` on the OSDFFileSystem(...) call itself, an
+       fsspec-recognized kwarg that `_Cached.__call__` special-cases to skip
+       the cache lookup (and skip storing the result) entirely, producing a
+       genuinely new *outer* object. Not storing it in the cache is
+       intentional and harmless: the only other place in this app that
+       constructs `OSDFFileSystem(direct_reads=False)` is this module's own
+       import-time `osdf = ...` above, which never needs to find this one
+       again.
+
+    2. That alone is NOT enough, confirmed by comparing the actual aiohttp
+       session objects (not just the outer OSDFFileSystem identity) before
+       and after: `OSDFFileSystem.__init__` builds its own
+       `fsspec.implementations.http.HTTPFileSystem` internally
+       (`self.http_file_system = fshttp.HTTPFileSystem(...)`) — and that's
+       the object whose `_session` actually backs every `.get()`/`.isdir()`/
+       `.open()` call (i.e., the download path; `.ls()`/listing goes through
+       a separate aiowebdav2 client that pelicanfs already opens fresh per
+       call, per this function's own longer-standing note below — never the
+       stale-session problem to begin with). `skip_instance_cache` is popped
+       off by fsspec's caching metaclass *before* `__init__` ever runs, so it
+       never reaches that inner HTTPFileSystem(...) call — which is still an
+       ordinary, cached fsspec construction, keyed on args that are identical
+       every time OSDFFileSystem(direct_reads=False) is built. Net effect
+       confirmed empirically: two "genuinely different" OSDFFileSystem
+       objects, built with skip_instance_cache=True and nothing else, still
+       shared the exact same `http_file_system` object and the exact same
+       aiohttp session underneath — the one thing that actually needed
+       resetting was untouched. `HTTPFileSystem.clear_instance_cache()`
+       (a classmethod fsspec provides on every cached filesystem class,
+       clearing that class's process-wide lookup table so the *next*
+       construction — the one about to happen inside the OSDFFileSystem()
+       call below — misses the cache and builds fresh) fixes that: confirmed
+       the resulting http_file_system and its session are both genuinely new
+       objects once this runs first.
+
+    Concurrency: `clear_instance_cache()` only empties HTTPFileSystem's
+    class-level lookup TABLE (a plain dict) — it doesn't reach into, close,
+    or invalidate any HTTPFileSystem object that already exists, the same
+    way `skip_instance_cache` only ever affects a *future* lookup. A thread
+    that already captured a reference to the pre-reset `fs` (e.g. mid-
+    request, before this ran) keeps using its own `http_file_system` and
+    session, fully functional, for as long as it holds that reference —
+    exactly the same guarantee the old (broken) implementation's docstring
+    already promised, now actually true because there IS a genuinely
+    distinct old object (transitively, all the way down to the real aiohttp
+    session) to keep using instead of "the same object under a new coat of
+    paint."
+
     Written for scripts/indexing_worker.py's connection-pressure safeguards
     (see its PROACTIVE_RESET_CALLS / list_path) — a single-process, 24h+
     Slurm job making tens of thousands of sequential .ls() calls is the one
@@ -54,15 +119,15 @@ def reset_default_filesystem() -> None:
     Passenger's own process recycling is already a coarser version of the
     same mitigation) so nothing here is wired into pelicanlistPath or
     download_one_file; this function just lives here, next to osdf itself,
-    since resetting it is squarely pelican.py's own responsibility.
-
-    Safe to call at any time — it only affects *future* _resolve_filesystem()
-    calls. A caller that already holds a reference to the old instance (e.g.
-    mid-request) keeps using it uninterrupted; nothing here reaches into or
-    cancels an in-flight call.
+    since resetting it is squarely pelican.py's own responsibility. It is
+    also the actual safety net behind GitHub issue #6's retry logic
+    (_with_connection_retry below calls this before every retried attempt),
+    so making it genuinely reset something matters there too, not just for
+    the indexing worker's original use case.
     """
     global osdf
-    osdf = OSDFFileSystem(direct_reads=False)
+    HTTPFileSystem.clear_instance_cache()
+    osdf = OSDFFileSystem(direct_reads=False, skip_instance_cache=True)
 
 
 def _encode_path_segment(path: str) -> str:
@@ -378,11 +443,26 @@ def download_one_file(filepath: str, storage_location: str) -> None:
         if is_dir:
             _download_directory(fs, path, storage_location)
         else:
-            # Confirmed unaffected by the directory-walk bug above — left
-            # exactly as it was, just retried on connection-class failure.
+            # 2026-09-28 fix: this used to hand fs.get() the percent-encoded
+            # path (_encode_path_segment(path)) as both the thing to fetch
+            # AND, implicitly, the source of the output filename — fsspec's
+            # get() derives the local destination name from the string it's
+            # given (see AbstractFileSystem.get()'s other_paths() call in
+            # fsspec/spec.py), so a name containing '+' or another character
+            # this app has to pre-encode (see _encode_path_segment's own
+            # docstring) landed on disk still percent-encoded, e.g.
+            # "Measurement+1.xml" saved as "Measurement%2B1.xml" — bytes
+            # correct, filename wrong. _download_directory just below
+            # already avoided this same trap by computing each file's local
+            # destination explicitly from the clean, un-encoded remote path
+            # (see its own docstring) and calling fs.get_file() with that
+            # explicit destination instead of letting fs.get() infer one;
+            # this does the same thing for the single-file case, and is
+            # confirmed unaffected by the directory-walk bug above.
+            local_path = os.path.join(storage_location, os.path.basename(path))
             _with_connection_retry(
                 f"download of {path}",
-                lambda: _resolve_filesystem(path).get(_encode_path_segment(path), storage_location, recursive=True),
+                lambda: _resolve_filesystem(path).get_file(_encode_path_segment(path), local_path),
             )
     except Exception as e:
         if _is_auth_required(e):
@@ -399,11 +479,44 @@ def download_one_file(filepath: str, storage_location: str) -> None:
         raise DownloadError(category.message, category.code) from (e if category.code == "unknown" else None)
 
 
+# 2026-09-28 investigation (GitHub-issue-suite item 3): a real directory with
+# 1,919 files was observed listing as exactly 1,000 through this endpoint,
+# with nothing telling the caller entries were missing. Traced by hand —
+# issuing the same PROPFIND pelicanfs/aiowebdav2 issue directly and reading
+# the raw response — to the origin/cache server itself (XRootD's http/WebDAV
+# plugin, confirmed via its own `Server: XrootD/v5.9.2` response header): the
+# response is a normal HTTP 207 with a complete, well-formed <D:multistatus>
+# document and a correct Content-Length, capped at 1,000 <D:response>
+# entries, with no truncation flag, no continuation cursor, and no error of
+# any kind marking it partial. This is not something pelican-ui's code
+# introduces, and neither aiowebdav2 nor pelicanfs adds or removes anything
+# from that response — there is no client-side page size to raise, and (per
+# this project's established convention — see _encode_path_segment's own
+# docstring) this deliberately does not patch pelicanfs/aiowebdav2 source to
+# work around origin-server behavior that's out of scope to fix directly.
+#
+# Since there is no signal in the response that distinguishes "this folder
+# has exactly 1,000 entries" from "this folder has more and got cut off,"
+# hitting the cap count is the only thing this app can go on — flagging it
+# is a heuristic, not a certainty (a folder that genuinely has exactly 1,000
+# entries would be flagged too), but an honest "there may be more" beats
+# both silently pretending the listing is complete and guessing a precise
+# total this app has no way to actually know.
+LISTING_TRUNCATION_SUSPECT_COUNT = 1000
+
+
 @pelicanRouter.get("/datasets/category/list-path")
-def pelicanlistPath(path: str):
+def pelicanlistPath(path: str, response: Response):
     fs = _resolve_filesystem(path)
     try:
-        return _attach_folder_sizes(fs.ls(_encode_path_segment(path)))
+        entries = fs.ls(_encode_path_segment(path))
+        if len(entries) == LISTING_TRUNCATION_SUSPECT_COUNT:
+            # A header, not a body-shape change: the response stays the same
+            # bare JSON array every existing caller (the JS file browser, the
+            # code snippets, anything else hitting this endpoint) already
+            # expects; this is additive-only for whichever caller checks it.
+            response.headers["X-Listing-Truncated"] = "1"
+        return _attach_folder_sizes(entries)
     except FileNotFoundError:
         raise HTTPException(status_code=404, detail=f'Path "{path}" was not found on the federation.')
     except Exception as e:
