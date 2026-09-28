@@ -27,6 +27,104 @@ checkout is taken from the submit directory (or `SUITE_DIR=`).
 
 No test is automatically retried: a flaky pass is signal. Repeated tests report pass rates in the summary.
 
+## Test reference: what each job does, and what a failure means
+
+Look a failing job up here by its `area::name` from `results.log` (strip any `[uvicorn]`/`[wsgi]`/`[repN]`/
+parametrize suffix first). "Circumstances" is what real-world condition the job creates before asserting;
+"a failure means" is how to read a FAIL for that specific job — not a generic "something broke."
+
+### `boot` (quick)
+
+| job | circumstances | a failure means |
+|---|---|---|
+| `page_renders[mode-home\|categories\|dataset_search\|quick_access\|downloads\|documentation\|admin]` | GETs each real page once, parametrized per page so one broken page can't mask the others. | That specific page returned non-200 or non-HTML — a template/route error on that page. `admin` needs the temp catalog's `authorizedUsers` to include the harness user (seeded automatically); if only `admin` fails, check that seeding, not the page itself. |
+| `about_route_removed` | GETs `/about`, which was removed from `main.py` (it was never linked from anywhere, its template never existed). | If this is not a 404, the route came back (a merge, a revert) without being re-wired — check `main.py` for a re-added `/about` handler. |
+| `static_assets_and_json_endpoints` | Fetches the three main JS bundles and the catalog/history JSON endpoints against a freshly seeded, empty temp DB. | Either a static file 404'd/came back tiny (a real asset regression) or a "fresh DB" endpoint returned non-empty data (the temp DB wasn't actually empty — an isolation bug, not an app bug). |
+| `server_uses_only_temp_paths` | Checks the launcher's own startup log line and that every DB/queue/flag path the running server holds is under the run's scratch dir. | `PV-ISOLATION-FAILURE` in the log or a path outside scratch means the isolation launcher failed to patch `api.core.config` before `main` imported it — **treat as serious**: a real run could otherwise touch the shared production DB. |
+
+### `db` (quick / standard)
+
+| job | circumstances | a failure means |
+|---|---|---|
+| `schema_init_is_idempotent` | Restarts the same temp DB twice via `_init_db()` (import-time) and checks the schema, WAL mode, and that history/jobs stay empty. | The schema changed across a restart, or WAL mode isn't set — a migration/idempotency bug in `downloads.py::_init_db`. |
+| `history_and_job_rows_lifecycle` | Downloads one small file through the real API and checks the history/job rows at each stage: created, in-progress, terminal, then deleted (with 404s afterward). | The DB rows don't match what the API/UI would show at some stage of a real download's life — check which stage (created/updated/deleted) failed in the assertion message. |
+| `catalog_crud_through_admin_routes` (standard) | Full CRUD (add/modify/remove, with duplicate-rejection checks) on datasets/categories/users through the real `/admin/*` routes against the temp shared-catalog DB. | An admin route returned the wrong status code or didn't persist/reject as expected — a real admin-panel bug, not specific to downloads. |
+
+### `downloads` (quick / standard) — real federation calls throughout
+
+| job | circumstances | a failure means |
+|---|---|---|
+| `small_file_downloads_with_correct_sha256` (quick) | Downloads one small real file end to end. | The most basic download path is broken — check this first if many other `downloads::*` jobs also fail. |
+| `real_404_reports_not_found_with_reason` (quick) | Downloads a path that genuinely does not exist. | The app didn't classify a real 404 as `not_found`, or gave no reason, or left partial files on disk. |
+| `token_required_namespace_without_a_token` (quick) | Lists and downloads a real token-gated namespace with **no token available** (and confirms the `pelican` binary is off PATH, so pelicanfs can't launch an interactive OIDC flow). | Either the 401/`auth_required` shape is wrong, detection took suspiciously long (an interactive auth flow may have started), or a token got saved that was never given. |
+| `two_files_in_one_job` | Two small real files in one job. | A multi-item batch doesn't correctly report both items succeeding — check if this fails but single-file jobs pass (points at batch handling, not transfer). |
+| `nested_directory_produces_exactly_the_expected_tree` | Downloads a real 4-level nested directory; requires an **exact** file tree match. Regression guard for issue #3. | Extra files (stray host-named folders / an HTML listing saved as a file — the #3 bug returning) or missing files in the downloaded tree. |
+| `plus_name_appears_in_listing` | Lists a real directory containing a `+`-named file. | The listing endpoint doesn't return the `+` name correctly — an aiowebdav2/encoding-layer issue, not the download path. |
+| `plus_name_downloads_via_the_listed_path` | Downloads the exact path string the listing above returned (a `+`-named file). | The file lands under the **wrong local filename** (e.g. percent-encoded) even if content is correct — this is exactly the bug fixed in `download_one_file`'s single-file branch; a regression here means that fix broke. |
+| `reset_default_filesystem_produces_a_working_new_session` | Runs the real `api.routes.pelican.reset_default_filesystem()` in a subprocess against the checkout under test, then a real download through it. | `reset_default_filesystem()` stopped genuinely resetting the aiohttp session (see the three `federation::*` jobs below for the underlying mechanism) — a regression in the fsspec-caching workaround. |
+| `destination_path_with_space_and_plus` | Downloads a small file into a **local destination directory** whose name contains a space and `+`. | A local path (not a remote path) containing special characters breaks the download or its DB record — different bug class from the plus-name federation tests above. |
+| `mixed_good_and_bad_batch_is_partial` | One batch: two real files + one real 404, so the job must end `partial`. Polls the history row to terminal separately (not just the job row) before asserting. | The `partial` status, per-file reasons, or DB persistence of a mixed-outcome batch is wrong. If this flakes intermittently, suspect a timing race reappearing (see `wait_history_terminal` in `helpers.py`) before suspecting the app. |
+| `missing_directory_and_missing_nested_file_are_not_found` | Two different shapes of "doesn't exist" (a missing directory, a missing file inside a real dataset) in one batch. | Either shape isn't classified `not_found`, or files were left on disk despite total failure. |
+| `nonexistent_namespace_is_reported_not_hung` | Downloads a path in a namespace that **does not exist at all** (`BadDirectorResponse` from the director) — behavior is recorded, not dictated to a specific category. | The job never reaches a terminal state (hangs) or reports no reason at all — a genuinely unhandled failure shape, worth reading the noted category/error in the log even on PASS. |
+| `large_directory_listing_flags_truncation_instead_of_hiding_it` | Lists a real directory known to hold 1,919 objects, which the origin server caps at 1,000 per PROPFIND response. | Either the count isn't the expected origin cap (origin behavior changed — re-run `pin_fixture.py` to check), or the count matches the cap but `X-Listing-Truncated` isn't set (a regression in the truncation-flagging fix). |
+| `existing_file_after_a_404_in_the_same_namespace_still_downloads` | One good file requested right after a 404 for a different path in the **same namespace**, repeated 8 times. | **Known environment-dependent pelicanfs behavior** (`bad_cache()` dropping a cache after any transfer exception) — not necessarily an app regression. Cross-check against `federation::pelicanfs_direct_existing_file_after_a_404` (same sequence, no app in the loop): if that one also fails, it's pelicanfs/the federation, not PELICANVIL. |
+
+### `concurrency` (standard / deep) — real federation calls throughout
+
+| job | circumstances | a failure means |
+|---|---|---|
+| `executor_cap_of_three_with_five_jobs` (standard, 5 jobs) / `executor_cap_of_three_repeated` (deep, 4 jobs, x `REPS`) | Starts N jobs simultaneously against one server; samples `download_jobs` directly (not by polling status endpoints, which would be inconsistent) to find the peak concurrent `in_progress` count. | Peak concurrency exceeded 3 (the executor cap in `downloads.py::_job_executor`), or a job never reached `complete`, or a later job started before an earlier slot actually freed — a real concurrency-control regression. |
+| `directory_listing_works_while_downloads_run` | Two real directory downloads running, while repeatedly listing an unrelated directory; requires the listing to overlap the downloads at least `MIN_LISTING_OVERLAP_BY_DEPTH[ctx.depth]` times (5 standard, 2 deep — scaled down for deep tier's heavier contention). | Either a listing call failed/changed content mid-download (listing and downloading interfering with each other), or too few overlaps happened even accounting for tier — check `worst list-path latency` in the note for a slow-listing-under-load signal. |
+| `queue_of_24_jobs_drains_correctly` (deep) | 24 small jobs queued against one server, well past the executor cap of 3. | Same concurrency-control checks as above, at higher queue depth — a regression here but not in the 5-job test suggests a scaling issue (e.g. queue bookkeeping) rather than the cap itself. |
+| `three_larger_files_download_concurrently` (deep) | Three real files of tens/hundreds of MB downloading at once. | A concurrency issue specific to larger, longer-running transfers (vs. the small-file concurrency tests above) — e.g. a race that only shows up once transfers take long enough to overlap meaningfully. |
+| `same_file_requested_twice_to_one_destination` (deep) | The exact same real file requested by two jobs into the same destination at the same time — **behavior is documented, not asserted to be any one outcome**. | Both jobs must still reach a terminal state and the server must stay healthy; if either job claims `complete`, the on-disk file must be byte-correct. A failure here means the app crashed, hung, or corrupted the file under this race — not "which job should win." |
+| `delete_record_while_job_is_running` (deep) | Deletes a download's history record while its background thread is still writing files. | The orphaned thread's DB writes resurrected the deleted record, new ERROR/Traceback lines appeared in the server log, or the files it was still writing ended up incomplete/wrong. |
+
+### `restart` (standard)
+
+| job | circumstances | a failure means |
+|---|---|---|
+| `unwritable_destination_then_restart_succeeds` | A real download into a `chmod`'d-unwritable destination (must classify `permission`), then the permissions are fixed and Restart is used to recover the *same* record. **Skips on Windows / as root**, where making a directory genuinely unwritable isn't possible. | Either the local-permission failure isn't classified `permission`, or the Restart endpoint doesn't recover cleanly (wrong status, duplicate job row, file not re-downloaded). |
+| `restart_file_retries_only_that_file_then_restart_all` | A 3-item batch fails entirely (unwritable dest), then per-file Restart is used on just one item, then whole-record Restart on the rest — checks that untouched items stay untouched and already-succeeded files are never re-downloaded (mtime check). | Per-file or whole-record Restart retried/cleared files it wasn't asked to, or re-downloaded a file that had already succeeded (wasted transfer, or worse, a race). |
+| `restart_of_partial_keeps_succeeded_file_untouched` | A batch with one real success and one real permanent failure (no chmod needed) ends `partial`; Restart is used and the already-succeeded file's mtime must not change. | The succeeded file was re-downloaded on restart, or the record's status/item-count is wrong after restart. |
+
+### `kill` (standard / deep) — real `kill -9` of the harness's own spawned server
+
+| job | circumstances | a failure means |
+|---|---|---|
+| `kill_mid_download_resumes_the_same_job` (standard) | Kills the app process mid-download (after some real items have already succeeded, mid-directory-write), restarts it, and requires the **same job_id** to resume and reach `complete` with succeeded items untouched. This is the direct regression test for GitHub issue #6 ("jobs stuck in progress for days"). | The job never resumes (stays `in_progress`/`STALL` forever — the original issue #6 symptom), a different job_id was minted, an already-succeeded file was re-downloaded, or a truncated file is left masquerading as complete. **This is the highest-value single test in the suite** — treat any failure here as high priority. |
+| `kill_recover_cycle[point=at_start\|between_files\|near_end\|double_kill, repN]` (deep) | Same as above, but kills at four different points in the job's lifecycle (including twice in a row), repeated `REPS` times. **SKIPs** a given `point`/`rep` if the job finished before the intended kill point could be reached (too fast — not a failure). | Same meaning as the standard-tier job above, but pinpoints *when* in the download lifecycle recovery breaks (e.g. only `between_files` failing suggests a mid-batch bookkeeping bug specifically, not the recovery mechanism in general). |
+
+### `federation` (standard) — real federation, deliberately WITHOUT the app, to attribute failures correctly
+
+| job | circumstances | a failure means |
+|---|---|---|
+| `pelicanfs_direct_existing_file_after_a_404` | Same 404-then-good-file sequence as `downloads::existing_file_after_a_404_in_the_same_namespace_still_downloads`, but calling pelicanfs directly with no app in the loop at all. Controls (good file only, no 404) run first and must be perfect. | If this fails **and** the `downloads::` version also fails: it's pelicanfs/the federation, not the app — a known, environment-dependent, unfixed-at-this-layer issue. If this passes but the `downloads::` version fails: the app is doing something extra to cause it — investigate the app, not pelicanfs. |
+| `osdf_filesystem_instance_caching_mechanism` | Documents a fsspec library fact: constructing `OSDFFileSystem(direct_reads=False)` twice returns the *same* cached instance. Asserts `a is b` (the caching exists). | If this now fails (`a is not b`), fsspec/pelicanfs's caching behavior has changed upstream — `reset_default_filesystem`'s workaround may no longer be necessary (harmless either way, but worth knowing and possibly simplifying). |
+| `skip_instance_cache_alone_leaves_the_real_session_shared` | Demonstrates the half-fix that looked sufficient but wasn't: `skip_instance_cache=True` alone still leaves the real aiohttp session (`http_file_system._session`) shared between "different" instances. Asserts the sharing still exists. | If this now fails (session no longer shared with just `skip_instance_cache`), pelicanfs's `__init__` has changed how it builds `http_file_system` — `reset_default_filesystem`'s extra `HTTPFileSystem.clear_instance_cache()` step may no longer be needed. |
+| `skip_instance_cache_plus_clearing_http_cache_gives_a_real_new_session` | The actual two-part fix mechanism, confirmed to produce a genuinely new `http_file_system` and session, and that the new instance still works. | The two-part fix (`clear_instance_cache()` + `skip_instance_cache=True`) stopped producing a genuinely new session — the core mechanism behind the `reset_default_filesystem` fix is broken. |
+
+### `long` (deep) — long-running, real, costly in wall time
+
+| job | circumstances | a failure means |
+|---|---|---|
+| `many_file_directory_job` | Ten real GOES-16 hour directories (1,200 files) submitted as one job — exactly what ticking ten folders in the UI would send. | A large real multi-directory batch doesn't complete correctly, or the resulting tree doesn't match what the federation reports *right now* (re-checked live, not just against the pin) — could be a real regression or federation drift; the note distinguishes the two. |
+| `long_running_directory_job` | One real ~24-minute, 2,833-file directory job (the same duration/shape the original issue #6 report showed failing), capped by `DURATION`/`LONG_MAX_GB`. A job that's still healthily progressing when the cap hits **passes** (capped, not failed) as long as no failures/stalls occurred and finished files are byte-correct. | A real failure or STALL occurred before the cap, or a "finished" file (other than the one still actively being written) has the wrong size — a long-duration-specific regression that short tests wouldn't catch. |
+| `soak_repeated_download_and_verify` | Repeats download→verify→delete against one long-lived server for `SOAK_DURATION` seconds, logging every iteration to `soak-<mode>.jsonl`; fails if **any** iteration failed. | Look at `soak-<mode>.jsonl` for which iteration(s) failed and their error — a failure partway through a long-lived server's life (vs. failing immediately) suggests degradation over time (e.g. connection/resource exhaustion), not a cold-start bug. |
+
+### `parity` (standard / deep) — SKIPs if the `pelican` CLI isn't found
+
+| job | circumstances | a failure means |
+|---|---|---|
+| `cli_and_app_agree_on_a_small_file` / `_a_nested_directory` / `_the_64mib_file` (deep) | Downloads the same real path via the app and via the real `pelican` CLI (the exact command the UI's snippet shows), and requires byte-identical results. | The app and CLI disagree on the same real path — since the CLI is the reporter's own "it works with `pelican get`" comparison point in issue #6, this is a direct app-vs-CLI regression check. **SKIP** (not FAIL) means the CLI wasn't found — check `PELICAN_BIN` / `module load pelican`, not the app. |
+
+### `invariants` / `isolation` (standard) — run last, over the whole run
+
+| job | circumstances | a failure means |
+|---|---|---|
+| `download_db_consistency_invariants` | After a settle period, checks every server's DB from this run: no job stuck non-terminal with no live thread, every history row's status agrees with its job row and file list, every failed file has a real reason and known category. | A DB consistency rule was violated *by any test in this run* — this often points at a bug a specific test's own assertions didn't check for; read which server/job/history id is named in the violation and cross-reference which test created it. |
+| `real_state_untouched` | Compares a snapshot of the real `~/.pelican-ui` (and shared production paths) taken before the run against one taken after. | The real `~/.pelican-ui` changed — an isolation failure (the suite touched real user state). **Treat as serious.** A shared production-path change is only noted, not failed, since another real user could cause that independently of this run. |
+
 ## Environment overrides
 
 Export them, or prefix the command (`ONLY=kill sbatch tests/pelicanvil_tests.sbatch standard`).
