@@ -59,7 +59,8 @@ TEST_VENV="${TEST_VENV:-$SCRATCH_BASE/venv}"
 
 if [ -n "${PV_MODULES:-}" ]; then
     # shellcheck disable=SC1091
-    source /etc/profile 2>/dev/null; module load $PV_MODULES || echo "warning: module load $PV_MODULES failed" >&2
+    set +u; source /etc/profile 2>/dev/null; set -u
+    module load $PV_MODULES || echo "warning: module load $PV_MODULES failed" >&2
 fi
 
 # 2026-09-28: the CLI-parity tests (tests/pvsuite/test_parity.py) were silently
@@ -71,7 +72,7 @@ fi
 # SKIP with a clear reason rather than the whole run failing over it.
 if [ -z "${PELICAN_BIN:-}" ]; then
     # shellcheck disable=SC1091
-    source /etc/profile 2>/dev/null
+    set +u; source /etc/profile 2>/dev/null; set -u
     module load pelican 2>/dev/null || echo "warning: 'module load pelican' failed or is unavailable on this cluster;" \
         "CLI-parity tests will SKIP unless PELICAN_BIN=/path/to/pelican is set" >&2
 fi
