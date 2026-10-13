@@ -22,6 +22,7 @@ from dataclasses import dataclass
 
 import aiohttp
 import asyncio
+from aiohttp import http_exceptions
 
 from aiowebdav2.exceptions import (
     UnauthorizedError,
@@ -134,6 +135,39 @@ def _is_connection_error(exc: BaseException) -> bool:
     revisited from real retry-outcome data once it's live.
     """
     return isinstance(exc, _CONNECTION_ERROR_TYPES)
+
+
+_TRANSIENT_ORIGIN_STATUSES = (500, 502, 503, 504)
+
+# Payload-class errors: the response started but the body didn't arrive
+# intact. None of these subclass aiohttp.ClientConnectionError (checked
+# against the installed aiohttp): ClientPayloadError is a plain ClientError,
+# and http_exceptions.ContentLengthError/PayloadEncodingError sit under
+# HttpProcessingError, so _is_connection_error misses all three.
+_PAYLOAD_ERROR_TYPES = (
+    aiohttp.ClientPayloadError,
+    http_exceptions.ContentLengthError,
+    http_exceptions.PayloadEncodingError,
+)
+
+
+def _is_payload_error(exc: BaseException) -> bool:
+    """True for a truncated/corrupt mid-stream body, which leaves a partial
+    file on disk that a retry must discard before rewriting."""
+    return isinstance(exc, _PAYLOAD_ERROR_TYPES)
+
+
+def _is_transient_origin_error(exc: BaseException) -> bool:
+    """True if exc is an origin-side fault worth retrying that
+    _is_connection_error doesn't cover: a 500/502/503/504 response or a
+    truncated/corrupt payload. Deliberately NOT folded into
+    _is_connection_error/classify_failure: scripts/indexing_worker.py treats
+    any non-"unknown" category as a settled data-class result, and the
+    download path wants a longer backoff for these than for a dead pooled
+    connection. 4xx (including 401/403/404) is never transient here."""
+    if isinstance(exc, aiohttp.ClientResponseError):
+        return exc.status in _TRANSIENT_ORIGIN_STATUSES
+    return _is_payload_error(exc)
 
 
 @dataclass(frozen=True)

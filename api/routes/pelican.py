@@ -7,7 +7,7 @@ from urllib.parse import quote
 from collections import defaultdict
 from api.core.config import DB_PATH
 from api.core.pelican_auth import get_token_for_namespace, log_unexpected_pelican_error
-from api.core.failure_classification import _is_auth_required, classify_failure
+from api.core.failure_classification import _is_auth_required, _is_transient_origin_error, classify_failure
 osdf = OSDFFileSystem(direct_reads=False)
 
 logger = logging.getLogger("pelican-ui.pelican")
@@ -248,8 +248,27 @@ def _attach_folder_sizes(entries: list) -> list:
 # the next thing they complain about.
 DOWNLOAD_RETRY_BACKOFFS = [2, 5]
 
+# Origin 500/502/503/504 and truncated/corrupt payloads (see
+# failure_classification._is_transient_origin_error). Found in the 2026-10-06
+# deep run (job 21141988): these were classified "unknown" and failed with
+# zero retries. An origin-side fault is more likely to last seconds than a
+# dead pooled connection, so this waits longer: 3 retries at 5s/15s/30s
+# (50s worst-case added latency per file) instead of 2s/5s.
+TRANSIENT_ORIGIN_RETRY_BACKOFFS = [5, 15, 30]
 
-def _with_connection_retry(description: str, fn):
+
+def _discard_partial(path: str | None) -> None:
+    if not path:
+        return
+    try:
+        os.remove(path)
+    except FileNotFoundError:
+        pass
+    except OSError:
+        logger.warning("Couldn't remove partial download %s", path, exc_info=True)
+
+
+def _with_connection_retry(description: str, fn, partial_path: str | None = None):
     """Calls fn() (a zero-arg callable performing exactly one blocking
     pelicanfs isdir()/get()/get_file() call), retrying up to
     len(DOWNLOAD_RETRY_BACKOFFS) more times if it raises a connection-class
@@ -275,20 +294,41 @@ def _with_connection_retry(description: str, fn):
     only replaces the module-level shared singleton going forward; a caller
     holding a reference to the old instance from before the reset would keep
     using the now-stale one otherwise.
+
+    Origin 500/502/503/504 and truncated/corrupt payloads
+    (_is_transient_origin_error) are retried too, on their own longer
+    TRANSIENT_ORIGIN_RETRY_BACKOFFS schedule. Each schedule is counted
+    separately, so a mix of failure kinds can't exceed either budget. If
+    partial_path is given (the local file fn() writes), it is deleted before
+    every retry so the retry rewrites from scratch, and also when a transient
+    origin error finally gives up, so a truncated file isn't left behind
+    looking like a download. 4xx and every other exception propagate
+    immediately, unretried, exactly as before.
     """
-    attempts = len(DOWNLOAD_RETRY_BACKOFFS) + 1
-    for attempt in range(1, attempts + 1):
+    used = {"connection": 0, "transient": 0}
+    while True:
         try:
             return fn()
         except Exception as e:
-            if classify_failure(e).code != "connection" or attempt == attempts:
+            if classify_failure(e).code == "connection":
+                kind, schedule = "connection", DOWNLOAD_RETRY_BACKOFFS
+            elif _is_transient_origin_error(e):
+                kind, schedule = "transient", TRANSIENT_ORIGIN_RETRY_BACKOFFS
+            else:
                 raise
-            backoff = DOWNLOAD_RETRY_BACKOFFS[attempt - 1]
+            if used[kind] >= len(schedule):
+                if kind == "transient":
+                    _discard_partial(partial_path)
+                raise
+            backoff = schedule[used[kind]]
+            used[kind] += 1
             logger.info(
-                "Connection-class failure on %s (attempt %d/%d): %s — resetting"
+                "%s failure on %s (retry %d/%d): %s — resetting"
                 " filesystem singleton and retrying in %ds",
-                description, attempt, attempts, e, backoff,
+                "Connection-class" if kind == "connection" else "Transient origin",
+                description, used[kind], len(schedule), e, backoff,
             )
+            _discard_partial(partial_path)
             reset_default_filesystem()
             time.sleep(backoff)
 
@@ -409,6 +449,7 @@ def _download_directory(fs, path: str, storage_location: str) -> None:
             lambda remote_path=remote_path, local_path=local_path: _resolve_filesystem(path).get_file(
                 _encode_path_segment(remote_path), local_path
             ),
+            partial_path=local_path,
         )
 
 
@@ -463,6 +504,7 @@ def download_one_file(filepath: str, storage_location: str) -> None:
             _with_connection_retry(
                 f"download of {path}",
                 lambda: _resolve_filesystem(path).get_file(_encode_path_segment(path), local_path),
+                partial_path=local_path,
             )
     except Exception as e:
         if _is_auth_required(e):
