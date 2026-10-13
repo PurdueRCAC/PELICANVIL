@@ -764,9 +764,9 @@ pathlib==1.0.1 \
     --hash=sha256:6940718dfc3eff4258203ad5021090933e5c04707d5ca8cc9e73c94a7894ea9f \
     --hash=sha256:f35f95ab8b0f59e6d354090350b44a80a80635d22efdedfa84c7ad1cf0a74147
     # via pelican-ui
-pelicanfs==1.3.1 \
-    --hash=sha256:4d50b30170e2e2ea07bc694c00521a653cf54284a5092669fe33252ac4e8ebe9 \
-    --hash=sha256:fc650efbaf2863eb072aab8624452a63f304dad472934402f862ad05e5b7a958
+pelicanfs==1.5.0 \
+    --hash=sha256:4649d32aff322d89c0d0fa139937844aa7d40b961061546a6c278a3cb8cdf9f3 \
+    --hash=sha256:d4dfe09c6100fe45ae662b55f290d58f386c6d8c4f6b93c2d0e2ea3da2b4f9d3
     # via pelican-ui
 propcache==0.5.2 \
     --hash=sha256:01c4fc7480cd0598bb4b57022df55b9ca296da7fc5a8760bd8451a7e63a7d427 \
