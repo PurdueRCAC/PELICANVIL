@@ -141,6 +141,59 @@ def _finish_history_record(record_id: int, status: str, error_message: str | Non
         con.close()
 
 
+def _finalize_job_and_history(job_id: str, history_id: int, status: str, error_message: str | None, job_files: list[dict], history_files: list[dict]) -> None:
+    """Writes the terminal state to download_jobs and download_history in ONE
+    transaction. They used to be two separate commits (_update_job, then
+    _finish_history_record); a kill landing between them left the job
+    'complete'/'partial'/'failed' but its history row stuck at 'in_progress',
+    and since recovery only scans non-terminal *jobs*, nothing ever repaired
+    the history row."""
+    now = datetime.now(timezone.utc).isoformat()
+    with _db_write_lock:
+        con = _get_connection()
+        try:
+            cur = con.cursor()
+            cur.execute(
+                "UPDATE download_jobs SET status = ?, files = ?, error_message = ?, updated_at = ? WHERE job_id = ?",
+                (status, json.dumps(job_files), error_message, now, job_id),
+            )
+            cur.execute(
+                "UPDATE download_history SET status = ?, finished_at = ?, error_message = ?, files = ? WHERE id = ?",
+                (status, now, error_message, json.dumps(history_files), history_id),
+            )
+            con.commit()
+        finally:
+            con.close()
+
+
+def _reconcile_history_with_jobs() -> None:
+    """Repairs history rows left 'in_progress' beneath a job that already
+    reached a terminal status (from the pre-atomic-finalize race, or any
+    other partial write). The job row is the source of truth."""
+    with _db_write_lock:
+        con = _get_connection()
+        try:
+            cur = con.cursor()
+            cur.execute(
+                "SELECT job_id, history_id, status, files, error_message FROM download_jobs "
+                "WHERE status IN ('complete', 'partial', 'failed') AND history_id IS NOT NULL "
+                # only the newest job per history row — restarts reuse the history id
+                "AND rowid = (SELECT MAX(j2.rowid) FROM download_jobs j2 WHERE j2.history_id = download_jobs.history_id) "
+                "AND history_id IN (SELECT id FROM download_history WHERE status != download_jobs.status)"
+            )
+            for job in cur.fetchall():
+                files = json.loads(job["files"]) if job["files"] else []
+                cur.execute(
+                    "UPDATE download_history SET status = ?, finished_at = COALESCE(finished_at, ?), error_message = ?, files = ? WHERE id = ?",
+                    (job["status"], datetime.now(timezone.utc).isoformat(), job["error_message"],
+                     json.dumps([_history_file_entry(f) for f in files]), job["history_id"]),
+                )
+                logger.info("Reconciled history_id=%s to job status %s", job["history_id"], job["status"])
+            con.commit()
+        finally:
+            con.close()
+
+
 def _update_job(job_id: str, status: str | None = None, files: list[dict] | None = None, error_message=_UNSET) -> None:
     updates = ["updated_at = ?"]
     params = [datetime.now(timezone.utc).isoformat()]
@@ -284,14 +337,12 @@ def _run_download_job(job_id: str, history_id: int, destination: str, paths: lis
         final_status = "partial"
         error_message = f"{len(failed)} of {total_count} item(s) failed to download."
 
-    _update_job(job_id, status=final_status, files=files, error_message=error_message)
-
-    # files already IS the full preserved+retry set (see above), so this no
-    # longer needs a separate combined_files merge the way the old code did
-    # — final_status/error_message above already reflect the whole picture
-    # since `succeeded` was seeded with the preserved paths from the start.
+    # files already IS the full preserved+retry set (see above), so no
+    # separate combined_files merge is needed — final_status/error_message
+    # reflect the whole picture since `succeeded` was seeded with the
+    # preserved paths from the start. Job + history are written atomically.
     history_files = [_history_file_entry(f) for f in files]
-    _finish_history_record(history_id, final_status, error_message, history_files)
+    _finalize_job_and_history(job_id, history_id, final_status, error_message, files, history_files)
 
 
 def _enqueue_job(history_id: int, name: str, destination: str, paths: list[str], preserved_files: list[dict] | None = None, sizes: dict[str, int] | None = None, is_restart: bool = False) -> str:
@@ -395,6 +446,8 @@ def _recover_interrupted_jobs() -> None:
     both key off job_id + status alone, neither cares how a row got into
     'in_progress').
     """
+    _reconcile_history_with_jobs()
+
     con = _get_connection()
     cur = con.cursor()
     cur.execute("SELECT * FROM download_jobs WHERE status IN ('pending', 'in_progress')")
@@ -435,8 +488,7 @@ def _recover_interrupted_jobs() -> None:
             # leaving a fully-succeeded job sitting at 'in_progress' with
             # nothing left to run.
             history_files = [_history_file_entry(f) for f in all_files]
-            _update_job(job_id, status="complete", files=all_files, error_message=None)
-            _finish_history_record(history_id, "complete", None, history_files)
+            _finalize_job_and_history(job_id, history_id, "complete", None, all_files, history_files)
             recovered_history_ids.append(history_id)
             continue
 
