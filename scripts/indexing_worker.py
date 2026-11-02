@@ -903,6 +903,10 @@ def _finalize_folder_sizes(dataset_id: int) -> None:
                 PRIMARY KEY (dataset_id, folder_path)
             )"""
         )
+        con.execute(
+            "CREATE INDEX IF NOT EXISTS idx_dataset_folder_sizes_folder_path"
+            " ON dataset_folder_sizes(folder_path)"
+        )
         _ensure_unavailable_column(con, "dataset_folder_sizes")
         con.execute(_STAGING_TABLE_SQL)
         _ensure_unavailable_column(con, "dataset_folder_sizes_staging")

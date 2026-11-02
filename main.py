@@ -1,7 +1,6 @@
 from fastapi import FastAPI, Request, HTTPException
 import logging
 import os
-import time
 from datetime import date
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
@@ -37,30 +36,6 @@ except Exception:
     logging.getLogger("pelican-ui.startup").exception("Category icon migration failed at startup")
 
 app = FastAPI()
-
-# ── TEMPORARY middleware — request-level timing. Remove before committing. ──
-_TIMING_LOG_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "logs", "timing_debug.log")
-
-def _timing_write_main(line: str) -> None:
-    with open(_TIMING_LOG_PATH, "a") as f:
-        import time as _t
-        f.write(f"{_t.strftime('%Y-%m-%d %H:%M:%S')} {line}\n")
-        f.flush()
-
-@app.middleware("http")
-async def _timing_middleware(request: Request, call_next):
-    if request.url.path in ("/retrieve-datasets", "/retrieve-categories"):
-        t0 = time.perf_counter()
-        response = await call_next(request)
-        elapsed = time.perf_counter() - t0
-        _timing_write_main(
-            "TIMING middleware %s %s: total=%.4fs" % (
-            request.method, request.url.path, elapsed,
-        ))
-        return response
-    return await call_next(request)
-# ── end temporary middleware ──
-
 # Computed once here rather than per-request — see get_git_version_info's
 # docstring-equivalent comment for why startup-time caching is correct
 # for this Passenger-restart deployment model.

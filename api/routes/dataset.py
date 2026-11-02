@@ -1,19 +1,10 @@
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import Response
-import json, logging, os, time
+import json, os
 from pathlib import Path
 import sqlite3
 from api.core.config import DB_PATH
 from api.core.category_icons import ensure_icon_columns
-
-# TEMPORARY — timing instrumentation for dataset-card-loading investigation.
-# Remove _TIMING_LOG_PATH, _timing_write, and all timing code before committing.
-_TIMING_LOG_PATH = os.path.join(Path(__file__).resolve().parent.parent.parent, "logs", "timing_debug.log")
-
-def _timing_write(line: str) -> None:
-    with open(_TIMING_LOG_PATH, "a") as f:
-        f.write(f"{time.strftime('%Y-%m-%d %H:%M:%S')} {line}\n")
-        f.flush()
 
 ROOTPATH = Path.cwd()
 DATASET_PATH = os.path.join(ROOTPATH, "data", "datasets.json")
@@ -44,18 +35,11 @@ def _indexed_sizes_by_path() -> dict:
 
 @datasetRouter.get("/retrieve-datasets")
 def serveDatasets():
-    # ── TEMPORARY timing instrumentation — remove before committing ──
-    t_start = time.perf_counter()
-
     con = sqlite3.connect(DB_PATH)
-    t_connect = time.perf_counter()
-
     con.row_factory = sqlite3.Row
     cur = con.cursor()
     cur.execute('SELECT * FROM datasets')
     rows = cur.fetchall()
-    t_query_datasets = time.perf_counter()
-
     try:
         cur.execute(
             "SELECT dfs.folder_path, dfs.size_bytes FROM dataset_folder_sizes dfs"
@@ -64,11 +48,7 @@ def serveDatasets():
         indexed_sizes = dict(cur.fetchall())
     except sqlite3.OperationalError:
         indexed_sizes = {}
-    t_query_sizes = time.perf_counter()
-
     con.close()
-    t_close = time.perf_counter()
-
     result = []
     for row in rows:
         current_row = {
@@ -83,17 +63,6 @@ def serveDatasets():
             "indexed_size_bytes": indexed_sizes.get(row["path"].rstrip("/")),
         }
         result.append(current_row)
-    t_build = time.perf_counter()
-
-    _timing_write(
-        "TIMING /retrieve-datasets: connect=%.4fs  query_datasets=%.4fs  "
-        "query_sizes=%.4fs  close=%.4fs  build_response=%.4fs  TOTAL=%.4fs  "
-        "rows=%d" % (
-        t_connect - t_start, t_query_datasets - t_connect,
-        t_query_sizes - t_query_datasets, t_close - t_query_sizes,
-        t_build - t_close, t_build - t_start, len(rows),
-    ))
-    # ── end temporary timing ──
     return result
 
 def buildCatalog():
@@ -142,21 +111,12 @@ def serveCatalog():
 
 @datasetRouter.get("/retrieve-categories")
 def serveCategories():
-    # ── TEMPORARY timing instrumentation — remove before committing ──
-    t_start = time.perf_counter()
-
     con = sqlite3.connect(DB_PATH)
-    t_connect = time.perf_counter()
-
     con.row_factory = sqlite3.Row
     cur = con.cursor()
     cur.execute('SELECT * FROM categories')
     rows = cur.fetchall()
-    t_query = time.perf_counter()
-
     con.close()
-    t_close = time.perf_counter()
-
     result = []
     for row in rows:
         current_row = {
@@ -166,16 +126,6 @@ def serveCategories():
             "description": row["description"],
         }
         result.append(current_row)
-    t_build = time.perf_counter()
-
-    _timing_write(
-        "TIMING /retrieve-categories: connect=%.4fs  query=%.4fs  "
-        "close=%.4fs  build_response=%.4fs  TOTAL=%.4fs  rows=%d" % (
-        t_connect - t_start, t_query - t_connect,
-        t_close - t_query, t_build - t_close,
-        t_build - t_start, len(rows),
-    ))
-    # ── end temporary timing ──
     return result
 
 
@@ -209,4 +159,3 @@ def serveCategoryIcon(category_url: str):
         raise HTTPException(status_code=404, detail="No icon set for this category.")
     data, content_type = row
     return Response(content=data, media_type=content_type or "application/octet-stream")
-
