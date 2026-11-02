@@ -7,8 +7,13 @@ from api.core.config import DB_PATH
 from api.core.category_icons import ensure_icon_columns
 
 # TEMPORARY — timing instrumentation for dataset-card-loading investigation.
-# Remove this logger and all _timing_log references before committing.
-_timing_log = logging.getLogger("pelican-ui.dataset-timing")
+# Remove _TIMING_LOG_PATH, _timing_write, and all timing code before committing.
+_TIMING_LOG_PATH = os.path.join(Path(__file__).resolve().parent.parent.parent, "logs", "timing_debug.log")
+
+def _timing_write(line: str) -> None:
+    with open(_TIMING_LOG_PATH, "a") as f:
+        f.write(f"{time.strftime('%Y-%m-%d %H:%M:%S')} {line}\n")
+        f.flush()
 
 ROOTPATH = Path.cwd()
 DATASET_PATH = os.path.join(ROOTPATH, "data", "datasets.json")
@@ -74,14 +79,14 @@ def serveDatasets():
         result.append(current_row)
     t_build = time.perf_counter()
 
-    _timing_log.warning(
+    _timing_write(
         "TIMING /retrieve-datasets: connect=%.4fs  query_datasets=%.4fs  "
         "query_sizes=%.4fs  close=%.4fs  build_response=%.4fs  TOTAL=%.4fs  "
-        "rows=%d",
+        "rows=%d" % (
         t_connect - t_start, t_query_datasets - t_connect,
         t_query_sizes - t_query_datasets, t_close - t_query_sizes,
         t_build - t_close, t_build - t_start, len(rows),
-    )
+    ))
     # ── end temporary timing ──
     return result
 
@@ -157,13 +162,13 @@ def serveCategories():
         result.append(current_row)
     t_build = time.perf_counter()
 
-    _timing_log.warning(
+    _timing_write(
         "TIMING /retrieve-categories: connect=%.4fs  query=%.4fs  "
-        "close=%.4fs  build_response=%.4fs  TOTAL=%.4fs  rows=%d",
+        "close=%.4fs  build_response=%.4fs  TOTAL=%.4fs  rows=%d" % (
         t_connect - t_start, t_query - t_connect,
         t_close - t_query, t_build - t_close,
         t_build - t_start, len(rows),
-    )
+    ))
     # ── end temporary timing ──
     return result
 
