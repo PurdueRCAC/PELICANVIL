@@ -1,14 +1,16 @@
 from fastapi import APIRouter, HTTPException, Response
 from pelicanfs import OSDFFileSystem
 from fsspec.implementations.http import HTTPFileSystem
-import fsspec, os, json, shutil, logging, sqlite3, time
+from fsspec.exceptions import FSTimeoutError
+import cachetools, fsspec, os, json, shutil, logging, sqlite3, time, threading
+from concurrent.futures import ThreadPoolExecutor, TimeoutError as FuturesTimeoutError
 from pathlib import Path
 from urllib.parse import quote
 from collections import defaultdict
 from api.core.config import DB_PATH
 from api.core.pelican_auth import get_token_for_namespace, log_unexpected_pelican_error
 from api.core.failure_classification import _is_auth_required, _is_transient_origin_error, classify_failure
-osdf = OSDFFileSystem(direct_reads=False)
+osdf = OSDFFileSystem(direct_reads=False, use_listings_cache=True, listings_expiry_time=90)
 
 logger = logging.getLogger("pelican-ui.pelican")
 
@@ -17,6 +19,13 @@ ROOTPATH = Path.cwd()
 DATASET_PATH = os.path.join(ROOTPATH, "data", "datasets.json")
 USER = os.environ.get("USER")
 SCRATCH_PATH = os.path.join("/anvil", "scratch", USER)
+
+
+LISTING_CACHE_TTL_SECONDS = 90
+LISTING_TIMEOUT_SECONDS = 30
+
+_listing_cache = cachetools.TTLCache(maxsize=256, ttl=LISTING_CACHE_TTL_SECONDS)
+_listing_cache_lock = threading.Lock()
 
 
 def _resolve_filesystem(namespace: str) -> OSDFFileSystem:
@@ -30,7 +39,9 @@ def _resolve_filesystem(namespace: str) -> OSDFFileSystem:
     """
     token = get_token_for_namespace(namespace)
     if token:
-        return OSDFFileSystem(direct_reads=False, headers={"Authorization": f"Bearer {token}"})
+        return OSDFFileSystem(direct_reads=False, use_listings_cache=True,
+                              listings_expiry_time=LISTING_CACHE_TTL_SECONDS,
+                              headers={"Authorization": f"Bearer {token}"})
     return osdf
 
 
@@ -127,7 +138,9 @@ def reset_default_filesystem() -> None:
     """
     global osdf
     HTTPFileSystem.clear_instance_cache()
-    osdf = OSDFFileSystem(direct_reads=False, skip_instance_cache=True)
+    osdf = OSDFFileSystem(direct_reads=False, use_listings_cache=True,
+                          listings_expiry_time=LISTING_CACHE_TTL_SECONDS,
+                          skip_instance_cache=True)
 
 
 def _encode_path_segment(path: str) -> str:
@@ -547,20 +560,41 @@ def download_one_file(filepath: str, storage_location: str) -> None:
 LISTING_TRUNCATION_SUSPECT_COUNT = 1000
 
 
+def _listing_from_federation(path: str) -> list:
+    """Calls fs.ls() with a timeout safety net. Runs the blocking pelicanfs
+    call inside a single-use thread so this thread can give up waiting after
+    LISTING_TIMEOUT_SECONDS instead of hanging indefinitely when the
+    federation is slow or unreachable. The inner thread may outlive the
+    timeout (pelicanfs/aiohttp have no external cancellation hook), but
+    the Passenger worker is freed and the user gets a fast error instead
+    of a minute-long hang."""
+    fs = _resolve_filesystem(path)
+    with ThreadPoolExecutor(max_workers=1) as pool:
+        future = pool.submit(fs.ls, _encode_path_segment(path))
+        return future.result(timeout=LISTING_TIMEOUT_SECONDS)
+
+
 @pelicanRouter.get("/datasets/category/list-path")
 def pelicanlistPath(path: str, response: Response):
-    fs = _resolve_filesystem(path)
     try:
-        entries = fs.ls(_encode_path_segment(path))
-        if len(entries) == LISTING_TRUNCATION_SUSPECT_COUNT:
-            # A header, not a body-shape change: the response stays the same
-            # bare JSON array every existing caller (the JS file browser, the
-            # code snippets, anything else hitting this endpoint) already
-            # expects; this is additive-only for whichever caller checks it.
+        with _listing_cache_lock:
+            cached = _listing_cache.get(path)
+        if cached is not None:
+            entries, was_truncated = cached
+        else:
+            entries = _listing_from_federation(path)
+            was_truncated = len(entries) == LISTING_TRUNCATION_SUSPECT_COUNT
+            with _listing_cache_lock:
+                _listing_cache[path] = (entries, was_truncated)
+
+        if was_truncated:
             response.headers["X-Listing-Truncated"] = "1"
         return _attach_folder_sizes(entries)
     except FileNotFoundError:
         raise HTTPException(status_code=404, detail=f'Path "{path}" was not found on the federation.')
+    except FuturesTimeoutError:
+        logger.warning("pelicanlistPath timed out after %ds for %s", LISTING_TIMEOUT_SECONDS, path)
+        raise HTTPException(status_code=504, detail="The federation took too long to respond. Try again.")
     except Exception as e:
         if _is_auth_required(e):
             raise HTTPException(
