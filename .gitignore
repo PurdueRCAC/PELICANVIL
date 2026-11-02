@@ -41,3 +41,6 @@ screenshots/
 logs/test-runs/
 logs/timing_debug.log
 pelicanvil-tests-*.out
+
+.uv-bin/
+logs/*.log
