@@ -31,7 +31,10 @@ def _indexed_sizes_by_path() -> dict:
         con = sqlite3.connect(DB_PATH)
         try:
             cur = con.cursor()
-            cur.execute("SELECT folder_path, size_bytes FROM dataset_folder_sizes")
+            cur.execute(
+                "SELECT dfs.folder_path, dfs.size_bytes FROM dataset_folder_sizes dfs"
+                " INNER JOIN datasets d ON dfs.folder_path = RTRIM(d.path, '/')"
+            )
             return dict(cur.fetchall())
         finally:
             con.close()
@@ -54,7 +57,10 @@ def serveDatasets():
     t_query_datasets = time.perf_counter()
 
     try:
-        cur.execute("SELECT folder_path, size_bytes FROM dataset_folder_sizes")
+        cur.execute(
+            "SELECT dfs.folder_path, dfs.size_bytes FROM dataset_folder_sizes dfs"
+            " INNER JOIN datasets d ON dfs.folder_path = RTRIM(d.path, '/')"
+        )
         indexed_sizes = dict(cur.fetchall())
     except sqlite3.OperationalError:
         indexed_sizes = {}
