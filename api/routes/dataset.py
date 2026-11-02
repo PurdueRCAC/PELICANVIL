@@ -31,15 +31,19 @@ def _indexed_sizes_by_path() -> dict:
 
 
 @datasetRouter.get("/retrieve-datasets")
-async def serveDatasets():
+def serveDatasets():
     result = []
     con = sqlite3.connect(DB_PATH)
     con.row_factory = sqlite3.Row
     cur = con.cursor()
     cur.execute('SELECT * FROM datasets')
     rows = cur.fetchall()
+    try:
+        cur.execute("SELECT folder_path, size_bytes FROM dataset_folder_sizes")
+        indexed_sizes = dict(cur.fetchall())
+    except sqlite3.OperationalError:
+        indexed_sizes = {}
     con.close()
-    indexed_sizes = _indexed_sizes_by_path()
     for row in rows:
         current_row = {
             "id": row["id"],
@@ -96,11 +100,11 @@ def buildCatalog():
     }
 
 @datasetRouter.get("/datasets/catalog")
-async def serveCatalog():
+def serveCatalog():
     return buildCatalog()
 
 @datasetRouter.get("/retrieve-categories")
-async def serveCategories():
+def serveCategories():
     result = []
     con = sqlite3.connect(DB_PATH)
     con.row_factory = sqlite3.Row
@@ -120,7 +124,7 @@ async def serveCategories():
 
 
 @datasetRouter.get("/categories/{category_url}/icon")
-async def serveCategoryIcon(category_url: str):
+def serveCategoryIcon(category_url: str):
     # Public — same trust level as /retrieve-categories above (category
     # icons are catalog-wide, not access-controlled data). Reads the DB-
     # backed icon straight into the HTTP response, not base64-inlined, so
