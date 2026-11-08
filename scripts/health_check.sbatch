@@ -30,7 +30,14 @@
 
 set -euo pipefail
 
-APP_DIR="$HOME/ondemand/dev/pelicanvil"
+# Resolved at submit time via SLURM_SUBMIT_DIR (the directory you ran
+# `sbatch` from), same approach as tests/pelicanvil_tests.sbatch — works
+# regardless of which user or home directory layout submits it.
+APP_DIR="${SLURM_SUBMIT_DIR:-$PWD}"
+if [ ! -f "$APP_DIR/tests/pelicanvil_tests.sbatch" ]; then
+    echo "Cannot find tests/pelicanvil_tests.sbatch under $APP_DIR; cd to your checkout before sbatch" >&2
+    exit 2
+fi
 RESUBMIT_DELAY_MINUTES=90
 
 cd "$APP_DIR"
@@ -46,5 +53,7 @@ done
 echo "Test job $TEST_JOB_ID finished."
 
 # Resubmit ourselves for the next cycle.
+# Resubmit from the same checkout directory so SLURM_SUBMIT_DIR resolves
+# correctly in the next cycle.
 echo "Resubmitting health check in ${RESUBMIT_DELAY_MINUTES} minutes."
-sbatch --begin="now+${RESUBMIT_DELAY_MINUTES}minutes" "$APP_DIR/scripts/health_check.sbatch"
+cd "$APP_DIR" && sbatch --begin="now+${RESUBMIT_DELAY_MINUTES}minutes" "$APP_DIR/scripts/health_check.sbatch"
