@@ -13,6 +13,7 @@ from api.routes.downloads import downloadsRouter
 from api.routes.token_auth import tokenAuthRouter
 from api.routes.indexing import indexingRouter
 from api.routes.blind_mode import blindModeRouter
+from api.routes.health import healthRouter
 from scripts.migrate_category_icons import migrate_category_icons
 
 from api.auth import is_authorized
@@ -48,6 +49,7 @@ app.include_router(downloadsRouter)
 app.include_router(tokenAuthRouter)
 app.include_router(indexingRouter)
 app.include_router(blindModeRouter)
+app.include_router(healthRouter)
 
 app.mount("/api/static", StaticFiles(directory="api/static"), name="static")
 

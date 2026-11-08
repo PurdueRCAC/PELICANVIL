@@ -19,6 +19,7 @@
     <link rel="stylesheet" href="{{ ROOT_URL }}/api/static/css/blind-mode.css">
     {% endif %}
     <script src="{{ ROOT_URL }}/api/static/js/theme.js" defer></script>
+    <script>window.ROOT_PATH = "{{ ROOT_URL }}";</script>
     <script>
       // Same fallback glyph as api/static/js/categories.js's
       // CATEGORY_ICON_FALLBACK, for these 4 static featured-category cards
@@ -94,6 +95,11 @@
             </div>
         </aside>
     </main>
+    <section class="health-status-bar" id="health-status-bar" style="display:none">
+        <span class="health-dot" id="health-dot"></span>
+        <span class="health-text" id="health-text"></span>
+    </section>
+    <script src="{{ ROOT_URL }}/api/static/js/health-status.js" defer></script>
     <section class="pelican-credit">
         <h2 class="pelican-credit-title">Powered by Pelican</h2>
         <p class="pelican-credit-description">PELICANVIL is built on top of the <a class="pelican-credit-link" href="https://pelicanplatform.org/" target="_blank" rel="noopener">Pelican Platform</a>, the open-source data federation software behind the Open Science Data Federation.</p>

@@ -142,4 +142,19 @@ if [ -d "$RUN_DIR" ] && [ -f "$RUN_DIR/results.log" ]; then
     # keep Slurm's own stdout next to the results too (best effort; it is still being written)
     [ -n "${SLURM_JOB_ID:-}" ] && cp "$SUITE_DIR/pelicanvil-tests-$SLURM_JOB_ID.out" "$RUN_DIR/slurm.out" 2>/dev/null
 fi
+
+# For standard-tier runs, copy the structured results to the shared
+# health_status.json next to DB_PATH so the home-page health widget
+# (api/core/health_status.py) can read it. Uses cp (not symlink) to
+# avoid a partially-written file being read mid-write — cp to a temp
+# file + mv is atomic on the same filesystem.
+if [ "$DEPTH" = "standard" ] && [ -d "$RUN_DIR" ] && [ -f "$RUN_DIR/results.json" ]; then
+    HEALTH_DIR="/anvil/projects/x-cda090008/anvil_reu26_pj4/pelican-ui-shared"
+    HEALTH_TMP="$HEALTH_DIR/.health_status.json.tmp"
+    HEALTH_DEST="$HEALTH_DIR/health_status.json"
+    cp "$RUN_DIR/results.json" "$HEALTH_TMP" 2>/dev/null && mv "$HEALTH_TMP" "$HEALTH_DEST" 2>/dev/null \
+        && echo "health_status.json updated at $HEALTH_DEST" \
+        || echo "warning: could not update health_status.json (non-fatal)" >&2
+fi
+
 exit "$rc"

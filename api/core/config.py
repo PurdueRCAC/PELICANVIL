@@ -21,3 +21,9 @@ INDEXING_QUEUE_PATH = os.path.join(os.path.dirname(DB_PATH), "indexing_queue.jso
 # DOWNLOADS_DB_PATH: it's meant to affect every page load for everyone
 # hitting this deployment while it's on, not just the admin who flipped it.
 BLIND_MODE_PATH = os.path.join(os.path.dirname(DB_PATH), "blind_mode.flag")
+
+# Latest health-check results (copied from tests/pvsuite results.json by
+# pelicanvil_tests.sbatch after a standard-tier run) — same shared
+# directory as DB_PATH, read by api/core/health_status.py for the
+# home-page health widget visible to all users.
+HEALTH_STATUS_PATH = os.path.join(os.path.dirname(DB_PATH), "health_status.json")
