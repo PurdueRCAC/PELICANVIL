@@ -20,16 +20,16 @@ async function fetchHealthStatus() {
 function renderHealthStatus(data) {
     const bar = document.getElementById("health-status-bar")
     const items = document.getElementById("health-status-items")
-    if (!data || !bar || !items) return
+    if (!bar || !items) return
 
-    if (data.overall === "unknown" || !data.areas || data.areas.length === 0) {
+    if (!data || data.overall === "unknown" || !data.areas || data.areas.length === 0) {
+        const summary = (data && data.summary) ? data.summary : "Status unavailable"
         items.innerHTML = `
             <div class="health-item">
                 <span class="health-dot health-dot-unknown"></span>
                 <span class="health-item-name">System Status</span>
-                <span class="health-item-summary">${data.summary || "Status unavailable"}</span>
+                <span class="health-item-summary">${summary}</span>
             </div>`
-        bar.style.display = ""
         return
     }
 
@@ -40,8 +40,6 @@ function renderHealthStatus(data) {
             <span class="health-item-summary">${area.summary}</span>
         </div>`
     ).join("")
-
-    bar.style.display = ""
 }
 
 async function pollHealthStatus() {
