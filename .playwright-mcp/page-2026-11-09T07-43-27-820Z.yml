@@ -1,0 +1,84 @@
+- generic [active] [ref=f11e1]:
+  - generic [ref=f11e2]:
+    - navigation [ref=f11e3]:
+      - generic [ref=f11e4]:
+        - link [ref=f11e5] [cursor=pointer]:
+          - /url: /
+          - img "PELICANVIL logo" [ref=f11e6]
+        - list [ref=f11e7]:
+          - listitem [ref=f11e8]:
+            - link "Explore Datasets" [ref=f11e9] [cursor=pointer]:
+              - /url: /datasets
+          - listitem [ref=f11e10]:
+            - link "Quick Access" [ref=f11e11] [cursor=pointer]:
+              - /url: /quick-access
+          - listitem [ref=f11e12]:
+            - link "Downloads" [ref=f11e13] [cursor=pointer]:
+              - /url: /downloads
+          - listitem [ref=f11e14]:
+            - link "Docs" [ref=f11e15] [cursor=pointer]:
+              - /url: /documentation
+      - generic [ref=f11e16]:
+        - button "Toggle light/dark theme" [ref=f11e17] [cursor=pointer]
+        - img "Purdue logo" [ref=f11e22]
+    - generic [ref=f11e23]:
+      - generic [ref=f11e24]:
+        - textbox "Filter datasets by name or description" [ref=f11e26]
+        - generic [ref=f11e27]:
+          - generic [ref=f11e28]:
+            - generic [ref=f11e29]: File type
+            - combobox "File type" [ref=f11e30] [cursor=pointer]:
+              - option "All types" [selected]
+              - option "HDF5"
+          - generic [ref=f11e31]:
+            - generic [ref=f11e32]: Category
+            - combobox "Category" [ref=f11e33] [cursor=pointer]:
+              - option "All categories" [selected]
+              - option "Earth / Climate"
+          - generic [ref=f11e34]:
+            - generic [ref=f11e35]: Streaming
+            - combobox "Streaming" [ref=f11e36] [cursor=pointer]:
+              - option "All datasets" [selected]
+              - option "Streamable only"
+              - option "Download only"
+      - generic [ref=f11e37]:
+        - generic [ref=f11e38]:
+          - generic [ref=f11e39] [cursor=pointer]: Test Dataset 1
+          - generic [ref=f11e42]:
+            - generic "Predominant file type — manually set by whoever added this dataset; a small number of incidental files (e.g. an auto-generated index page) may not match" [ref=f11e43]:
+              - generic [ref=f11e44]: 
+              - text: HDF5
+            - generic [ref=f11e45]:
+              - generic [ref=f11e46]: 
+              - text: Download only
+            - generic [ref=f11e47]:
+              - generic [ref=f11e48]: 
+              - text: public
+            - generic "This dataset hasn't been indexed yet" [ref=f11e49]:
+              - generic [ref=f11e50]: 
+              - text: Size unavailable
+        - text:            
+  - contentinfo [ref=f11e51]:
+    - heading "Powered by Pelican" [level=2] [ref=f11e52]
+    - paragraph [ref=f11e53]:
+      - text: PELICANVIL is built on top of the
+      - link "Pelican Platform" [ref=f11e54] [cursor=pointer]:
+        - /url: https://pelicanplatform.org/
+      - text: ", the open-source data federation software behind the Open Science Data Federation."
+    - generic [ref=f11e55]:
+      - link " Pelican Platform" [ref=f11e56] [cursor=pointer]:
+        - /url: https://pelicanplatform.org/
+        - generic [ref=f11e57]: 
+        - text: Pelican Platform
+      - link " GitHub" [ref=f11e58] [cursor=pointer]:
+        - /url: https://github.com/PelicanPlatform
+        - generic [ref=f11e59]: 
+        - text: GitHub
+      - link " Usage Docs" [ref=f11e60] [cursor=pointer]:
+        - /url: https://docs.pelicanplatform.org/about-pelican
+        - generic [ref=f11e61]: 
+        - text: Usage Docs
+      - link " PelicanFS" [ref=f11e62] [cursor=pointer]:
+        - /url: https://github.com/PelicanPlatform/pelicanfs
+        - generic [ref=f11e63]: 
+        - text: PelicanFS

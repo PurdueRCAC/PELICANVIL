@@ -16,7 +16,7 @@
     <script>window.ROOT_PATH = "{{ROOT_URL}}"</script>
     <script src="{{ROOT_URL}}/api/static/js/docs.js" defer></script>
     <script src="{{ROOT_URL}}/api/static/js/theme.js" defer></script>
-    <link rel="stylesheet" href="{{ROOT_URL}}/api/static/css/navbar.css">
+    <link rel="stylesheet" href="{{ROOT_URL}}/api/static/css/navbar.css?v=2">
     <link rel="stylesheet" href="{{ROOT_URL}}/api/static/css/docs.css">
     {% if BLIND_MODE %}
     <link rel="stylesheet" href="{{ROOT_URL}}/api/static/css/blind-mode.css">
@@ -222,5 +222,6 @@ class OSDFDataset(Dataset):
       </main>
 
     </div>
+    {% include "partials/footer.html" %}
   </body>
 </html>

@@ -36,6 +36,8 @@ async function addCategoryCard(category){
         const newCard = document.createElement("div");
         const container = document.querySelector(".category-card-container")
         newCard.className="category-card";
+        const count = category["dataset_count"] || 0
+        const countLabel = count === 1 ? "1 dataset" : `${count} datasets`
         newCard.innerHTML=`
         <a href="${window.ROOT_PATH}/datasets/category/${category["url"]}">
             <div class="category-card-content">
@@ -44,6 +46,7 @@ async function addCategoryCard(category){
                 </div>
                 <h2 class="category-card-name">${category["name"]}</h2>
                 <p class="category-card-description-text">${category["description"]}</p>
+                <span class="category-card-count">${countLabel}</span>
             </div>
         </a>
         `

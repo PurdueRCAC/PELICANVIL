@@ -13,6 +13,12 @@
 :root {
   --primary-font: font-family: Poppins, sans-serif;
 }
+mark {
+  background-color: rgba(var(--accent-rgb), 0.25);
+  color: inherit;
+  border-radius: 2px;
+  padding: 0 2px;
+}
 
 html, body {
   background-color: var(--bg-page) !important;
@@ -308,9 +314,12 @@ clamp(s_1px, calc(b + (m*100)vw), s_2px)
   font-size: 0.68rem;
 }
 .dataset-meta-streamable {
-  color: var(--on-accent);
-  background-color: var(--accent);
-  border-color: var(--accent-text);
+  color: #d1fae5;
+  background-color: rgba(var(--success-rgb), 0.15);
+  border-color: rgba(var(--success-rgb), 0.3);
+}
+.dataset-meta-streamable .fa {
+  color: var(--success);
 }
 .dataset-meta-static {
   color: var(--text-muted);

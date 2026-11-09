@@ -196,6 +196,16 @@ function applyDatasetFilter() {
     if (matches) {
       visibleCount += 1;
     }
+    const titleEl = card.querySelector(".dataset-card-title-box");
+    if (titleEl) {
+      if (!titleEl.dataset.original) titleEl.dataset.original = titleEl.textContent;
+      if (cleanedQuery && matchesSearch) {
+        const re = new RegExp(`(${cleanedQuery.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})`, "gi");
+        titleEl.innerHTML = titleEl.dataset.original.replace(re, "<mark>$1</mark>")
+      } else {
+        titleEl.textContent = titleEl.dataset.original
+      }
+    }
   });
   const emptyBox = document.querySelector(".dataset-search-empty");
   const emptyBoxClear = emptyBox.querySelector(".dataset-search-empty-clear");
@@ -1338,6 +1348,14 @@ function buildSnippets(snippetBox, dataset){
   })
   snippetCopy.addEventListener("click", () =>{
     navigator.clipboard.writeText(snippetCopy.dataset.copyData)
+    snippetCopy.classList.remove("fa-copy")
+    snippetCopy.classList.add("fa-check")
+    snippetCopy.style.color = "var(--success)"
+    setTimeout(() => {
+      snippetCopy.classList.remove("fa-check")
+      snippetCopy.classList.add("fa-copy")
+      snippetCopy.style.color = ""
+    }, 1500)
   })
 
 

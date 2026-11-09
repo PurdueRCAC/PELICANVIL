@@ -1,0 +1,4 @@
+[      42ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://127.0.0.1:8765/categories/earth-climate/icon:0
+[      44ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://127.0.0.1:8765/categories/machine-learning/icon:0
+[      44ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://127.0.0.1:8765/categories/physics/icon:0
+[      44ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://127.0.0.1:8765/categories/genomics/icon:0

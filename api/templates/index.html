@@ -13,7 +13,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
-    <link rel="stylesheet" href="{{ ROOT_URL }}/api/static/css/navbar.css">
+    <link rel="stylesheet" href="{{ ROOT_URL }}/api/static/css/navbar.css?v=2">
     <link rel="stylesheet" href="{{ ROOT_URL }}/api/static/css/home.css">
     {% if BLIND_MODE %}
     <link rel="stylesheet" href="{{ ROOT_URL }}/api/static/css/blind-mode.css">
@@ -99,19 +99,42 @@
         <div class="health-status-header">
             <i class="ti ti-activity-heartbeat health-status-icon"></i>
             <span class="health-label">System Status</span>
+            <span class="health-timestamp" id="health-status-timestamp" style="display:none"></span>
         </div>
-        <div class="health-status-items" id="health-status-items"></div>
-    </section>
-    <script src="{{ ROOT_URL }}/api/static/js/health-status.js" defer></script>
-    <section class="pelican-credit">
-        <h2 class="pelican-credit-title">Powered by Pelican</h2>
-        <p class="pelican-credit-description">PELICANVIL is built on top of the <a class="pelican-credit-link" href="https://pelicanplatform.org/" target="_blank" rel="noopener">Pelican Platform</a>, the open-source data federation software behind the Open Science Data Federation.</p>
-        <div class="pelican-credit-links">
-            <a class="pelican-credit-pill" href="https://pelicanplatform.org/" target="_blank" rel="noopener"><i class="ti ti-external-link"></i>Pelican Platform</a>
-            <a class="pelican-credit-pill" href="https://github.com/PelicanPlatform" target="_blank" rel="noopener"><i class="ti ti-brand-github"></i>GitHub</a>
-            <a class="pelican-credit-pill" href="https://docs.pelicanplatform.org/about-pelican" target="_blank" rel="noopener"><i class="ti ti-external-link"></i>Usage Docs</a>
-            <a class="pelican-credit-pill" href="https://github.com/PelicanPlatform/pelicanfs" target="_blank" rel="noopener"><i class="ti ti-brand-github"></i>PelicanFS</a>
+        <div class="health-status-items" id="health-status-items">
+            <div class="health-item">
+                <span class="health-dot health-dot-unknown"></span>
+                <span class="health-item-name">System Status</span>
+                <span class="health-item-summary">Checking...</span>
+            </div>
         </div>
     </section>
+    <section class="recent-datasets" id="recent-datasets" style="display:none">
+        <div class="recent-datasets-header">
+            <i class="ti ti-clock recent-datasets-icon"></i>
+            <span class="recent-datasets-label">Recently Added</span>
+        </div>
+        <div class="recent-datasets-list" id="recent-datasets-list"></div>
+    </section>
+    <script src="{{ ROOT_URL }}/api/static/js/health-status.js?v=3" defer></script>
+    <script>
+    document.addEventListener("DOMContentLoaded", async () => {
+        try {
+            const resp = await fetch(`${window.ROOT_PATH}/datasets/recent`)
+            if (!resp.ok) return
+            const datasets = await resp.json()
+            if (!datasets.length) return
+            const list = document.getElementById("recent-datasets-list")
+            const section = document.getElementById("recent-datasets")
+            list.innerHTML = datasets.map(d => `
+                <a class="recent-dataset-card" href="${window.ROOT_PATH}/datasets">
+                    <span class="recent-dataset-name">${d.name}</span>
+                    <span class="recent-dataset-format">${d.format || ""}</span>
+                </a>`).join("")
+            section.style.display = ""
+        } catch (_) {}
+    })
+    </script>
+    {% include "partials/footer.html" %}
   </body>
 </html>

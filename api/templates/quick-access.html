@@ -19,7 +19,7 @@
     <script src="{{ROOT_URL}}/api/static/js/toast.js"></script>
     <script src="{{ROOT_URL}}/api/static/js/quick-access.js" defer></script>
     <script src="{{ROOT_URL}}/api/static/js/theme.js" defer></script>
-    <link rel="stylesheet" href="{{ROOT_URL}}/api/static/css/navbar.css">
+    <link rel="stylesheet" href="{{ROOT_URL}}/api/static/css/navbar.css?v=2">
     <link rel="stylesheet" href="{{ROOT_URL}}/api/static/css/toast.css">
     <link rel="stylesheet" href="{{ROOT_URL}}/api/static/css/quick-access.css">
     {% if BLIND_MODE %}
@@ -72,5 +72,6 @@
             </div>
         </div>
     </div>
+    {% include "partials/footer.html" %}
   </body>
 </html>

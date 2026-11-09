@@ -15,6 +15,9 @@
 
         </ul>
     </div>
+    <script>
+    (function(){var links=document.querySelectorAll(".navbar-link");var p=window.location.pathname.replace(/\/$/,"");links.forEach(function(a){var h=new URL(a.href).pathname.replace(/\/$/,"");if(p===h||p.startsWith(h+"/"))a.classList.add("active");});})();
+    </script>
     {% if not BLIND_MODE %}
     <div class="home-navbar-right">
         <button type="button" class="theme-toggle" id="theme-toggle" title="Toggle light/dark theme" aria-label="Toggle light/dark theme">

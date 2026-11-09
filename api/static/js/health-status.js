@@ -17,10 +17,28 @@ async function fetchHealthStatus() {
     }
 }
 
+function timeAgo(ts) {
+    const diff = Math.floor((Date.now() / 1000) - ts)
+    if (diff < 60) return "just now"
+    if (diff < 3600) return `${Math.floor(diff / 60)} min ago`
+    if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`
+    return `${Math.floor(diff / 86400)}d ago`
+}
+
 function renderHealthStatus(data) {
     const bar = document.getElementById("health-status-bar")
     const items = document.getElementById("health-status-items")
+    const timestamp = document.getElementById("health-status-timestamp")
     if (!bar || !items) return
+
+    if (timestamp) {
+        if (data && data.last_checked_at) {
+            timestamp.textContent = `Last checked ${timeAgo(data.last_checked_at)}`
+            timestamp.style.display = ""
+        } else {
+            timestamp.style.display = "none"
+        }
+    }
 
     if (!data || data.overall === "unknown" || !data.areas || data.areas.length === 0) {
         const summary = (data && data.summary) ? data.summary : "Status unavailable"

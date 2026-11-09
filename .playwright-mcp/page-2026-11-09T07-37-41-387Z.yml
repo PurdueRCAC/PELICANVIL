@@ -1,0 +1,56 @@
+- generic [active] [ref=f5e1]:
+  - navigation [ref=f5e2]:
+    - generic [ref=f5e3]:
+      - link [ref=f5e4] [cursor=pointer]:
+        - /url: /
+        - img "PELICANVIL logo" [ref=f5e5]
+      - list [ref=f5e6]:
+        - listitem [ref=f5e7]:
+          - link "Explore Datasets" [ref=f5e8] [cursor=pointer]:
+            - /url: /datasets
+        - listitem [ref=f5e9]:
+          - link "Quick Access" [ref=f5e10] [cursor=pointer]:
+            - /url: /quick-access
+        - listitem [ref=f5e11]:
+          - link "Downloads" [ref=f5e12] [cursor=pointer]:
+            - /url: /downloads
+        - listitem [ref=f5e13]:
+          - link "Docs" [ref=f5e14] [cursor=pointer]:
+            - /url: /documentation
+    - generic [ref=f5e15]:
+      - button "Toggle light/dark theme" [ref=f5e16] [cursor=pointer]
+      - img "Purdue logo" [ref=f5e21]
+  - generic [ref=f5e22]:
+    - generic [ref=f5e23]:
+      - textbox "Search all datasets by name or description" [ref=f5e24]
+      - button "Search" [ref=f5e25] [cursor=pointer]
+    - generic [ref=f5e26]:
+      - link "category card icon Earth / Climate Climate datasets 1 dataset" [ref=f5e28] [cursor=pointer]:
+        - /url: /datasets/category/earth-climate
+        - generic [ref=f5e29]:
+          - img "category card icon" [ref=f5e31]
+          - heading "Earth / Climate" [level=2] [ref=f5e32]
+          - paragraph [ref=f5e33]: Climate datasets
+          - generic [ref=f5e34]: 1 dataset
+      - link "category card icon Machine Learning ML datasets 1 dataset" [ref=f5e36] [cursor=pointer]:
+        - /url: /datasets/category/machine-learning
+        - generic [ref=f5e37]:
+          - img "category card icon" [ref=f5e39]
+          - heading "Machine Learning" [level=2] [ref=f5e40]
+          - paragraph [ref=f5e41]: ML datasets
+          - generic [ref=f5e42]: 1 dataset
+      - link "category card icon Physics Physics datasets 1 dataset" [ref=f5e44] [cursor=pointer]:
+        - /url: /datasets/category/physics
+        - generic [ref=f5e45]:
+          - img "category card icon" [ref=f5e47]
+          - heading "Physics" [level=2] [ref=f5e48]
+          - paragraph [ref=f5e49]: Physics datasets
+          - generic [ref=f5e50]: 1 dataset
+      - link "category card icon Genomics Genomics datasets 0 datasets" [ref=f5e52] [cursor=pointer]:
+        - /url: /datasets/category/genomics
+        - generic [ref=f5e53]:
+          - img "category card icon" [ref=f5e55]
+          - heading "Genomics" [level=2] [ref=f5e56]
+          - paragraph [ref=f5e57]: Genomics datasets
+          - generic [ref=f5e58]: 0 datasets
+    - text: 

@@ -1,0 +1,3 @@
+[     135ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://127.0.0.1:8765/retrieve-categories:0
+[     135ms] [LOG] Fetching categories failed:  Error: HTTP ERROR! Status 500
+    at fetchCategories (http://127.0.0.1:8765/api/static/js/categories.js:16:19) @ http://127.0.0.1:8765/api/static/js/categories.js:27

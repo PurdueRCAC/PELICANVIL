@@ -24,7 +24,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
 
-    <link rel="stylesheet" href="{{ROOT_URL}}/api/static/css/navbar.css">
+    <link rel="stylesheet" href="{{ROOT_URL}}/api/static/css/navbar.css?v=2">
     <link rel="stylesheet" href="{{ROOT_URL}}/api/static/css/toast.css">
     <link rel="stylesheet" href="{{ROOT_URL}}/api/static/css/datasets.css">
     {% if BLIND_MODE %}
@@ -78,5 +78,6 @@
       <div class="dataset-category-empty" style="display:none;">This category doesn't have any datasets yet.</div>
     </div>
 </div>
+    {% include "partials/footer.html" %}
   </body>
 </html>

@@ -272,6 +272,14 @@ function buildSnippets(path){
         })
         snippetCopy.addEventListener("click", () =>{
             navigator.clipboard.writeText(snippetCopy.dataset.copyData)
+            snippetCopy.classList.remove("fa-copy")
+            snippetCopy.classList.add("fa-check")
+            snippetCopy.style.color = "var(--success)"
+            setTimeout(() => {
+                snippetCopy.classList.remove("fa-check")
+                snippetCopy.classList.add("fa-copy")
+                snippetCopy.style.color = ""
+            }, 1500)
         })
 
         snippetSelectorBox.addEventListener("click", () =>{

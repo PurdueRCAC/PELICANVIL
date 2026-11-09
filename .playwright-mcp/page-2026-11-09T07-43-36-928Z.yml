@@ -1,0 +1,122 @@
+- generic [active] [ref=f12e1]:
+  - generic [ref=f12e2]:
+    - navigation [ref=f12e3]:
+      - generic [ref=f12e4]:
+        - link [ref=f12e5] [cursor=pointer]:
+          - /url: /
+          - img "PELICANVIL logo" [ref=f12e6]
+        - list [ref=f12e7]:
+          - listitem [ref=f12e8]:
+            - link "Explore Datasets" [ref=f12e9] [cursor=pointer]:
+              - /url: /datasets
+          - listitem [ref=f12e10]:
+            - link "Quick Access" [ref=f12e11] [cursor=pointer]:
+              - /url: /quick-access
+          - listitem [ref=f12e12]:
+            - link "Downloads" [ref=f12e13] [cursor=pointer]:
+              - /url: /downloads
+          - listitem [ref=f12e14]:
+            - link "Docs" [ref=f12e15] [cursor=pointer]:
+              - /url: /documentation
+      - generic [ref=f12e16]:
+        - button "Toggle light/dark theme" [ref=f12e17] [cursor=pointer]
+        - img "Purdue logo" [ref=f12e22]
+    - generic [ref=f12e23]:
+      - generic [ref=f12e24]:
+        - textbox "Filter datasets by name or description" [ref=f12e26]
+        - generic [ref=f12e27]:
+          - generic [ref=f12e28]:
+            - generic [ref=f12e29]: File type
+            - combobox "File type" [ref=f12e30] [cursor=pointer]:
+              - option "All types" [selected]
+              - option "CSV"
+              - option "HDF5"
+              - option "NetCDF"
+          - generic [ref=f12e31]:
+            - generic [ref=f12e32]: Category
+            - combobox "Category" [ref=f12e33] [cursor=pointer]:
+              - option "All categories" [selected]
+              - option "Earth / Climate"
+              - option "Machine Learning"
+              - option "Physics"
+          - generic [ref=f12e34]:
+            - generic [ref=f12e35]: Streaming
+            - combobox "Streaming" [ref=f12e36] [cursor=pointer]:
+              - option "All datasets" [selected]
+              - option "Streamable only"
+              - option "Download only"
+      - generic [ref=f12e37]:
+        - generic [ref=f12e38]:
+          - generic [ref=f12e39] [cursor=pointer]: Test Dataset 1
+          - generic [ref=f12e42]:
+            - generic "Predominant file type — manually set by whoever added this dataset; a small number of incidental files (e.g. an auto-generated index page) may not match" [ref=f12e43]:
+              - generic [ref=f12e44]: 
+              - text: HDF5
+            - generic [ref=f12e45]:
+              - generic [ref=f12e46]: 
+              - text: Download only
+            - generic [ref=f12e47]:
+              - generic [ref=f12e48]: 
+              - text: public
+            - generic "This dataset hasn't been indexed yet" [ref=f12e49]:
+              - generic [ref=f12e50]: 
+              - text: Size unavailable
+        - text:            
+      - generic [ref=f12e51]:
+        - generic [ref=f12e52]:
+          - generic [ref=f12e53] [cursor=pointer]: Test Dataset 2
+          - generic [ref=f12e56]:
+            - generic "Predominant file type — manually set by whoever added this dataset; a small number of incidental files (e.g. an auto-generated index page) may not match" [ref=f12e57]:
+              - generic [ref=f12e58]: 
+              - text: CSV
+            - generic [ref=f12e59]:
+              - generic [ref=f12e60]: 
+              - text: Download only
+            - generic [ref=f12e61]:
+              - generic [ref=f12e62]: 
+              - text: public
+            - generic "This dataset hasn't been indexed yet" [ref=f12e63]:
+              - generic [ref=f12e64]: 
+              - text: Size unavailable
+        - text:            
+      - generic [ref=f12e65]:
+        - generic [ref=f12e66]:
+          - generic [ref=f12e67] [cursor=pointer]: Test Dataset 3
+          - generic [ref=f12e70]:
+            - generic "Predominant file type — manually set by whoever added this dataset; a small number of incidental files (e.g. an auto-generated index page) may not match" [ref=f12e71]:
+              - generic [ref=f12e72]: 
+              - text: NetCDF
+            - generic [ref=f12e73]:
+              - generic [ref=f12e74]: 
+              - text: Download only
+            - generic [ref=f12e75]:
+              - generic [ref=f12e76]: 
+              - text: public
+            - generic "This dataset hasn't been indexed yet" [ref=f12e77]:
+              - generic [ref=f12e78]: 
+              - text: Size unavailable
+        - text:            
+  - contentinfo [ref=f12e79]:
+    - heading "Powered by Pelican" [level=2] [ref=f12e80]
+    - paragraph [ref=f12e81]:
+      - text: PELICANVIL is built on top of the
+      - link "Pelican Platform" [ref=f12e82] [cursor=pointer]:
+        - /url: https://pelicanplatform.org/
+      - text: ", the open-source data federation software behind the Open Science Data Federation."
+    - generic [ref=f12e83]:
+      - link " Pelican Platform" [ref=f12e84] [cursor=pointer]:
+        - /url: https://pelicanplatform.org/
+        - generic [ref=f12e85]: 
+        - text: Pelican Platform
+      - link " GitHub" [ref=f12e86] [cursor=pointer]:
+        - /url: https://github.com/PelicanPlatform
+        - generic [ref=f12e87]: 
+        - text: GitHub
+      - link " Usage Docs" [ref=f12e88] [cursor=pointer]:
+        - /url: https://docs.pelicanplatform.org/about-pelican
+        - generic [ref=f12e89]: 
+        - text: Usage Docs
+      - link " PelicanFS" [ref=f12e90] [cursor=pointer]:
+        - /url: https://github.com/PelicanPlatform/pelicanfs
+        - generic [ref=f12e91]: 
+        - text: PelicanFS

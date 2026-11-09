@@ -161,6 +161,20 @@ html, body {
     overflow: hidden;
 }
 
+.category-card-count {
+    display: inline-block;
+    margin-top: auto;
+    padding: 0.25rem 0.75rem;
+    font-family: Poppins, sans-serif;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--accent-text);
+    background-color: rgba(var(--accent-rgb), 0.12);
+    border: 1px solid rgba(var(--accent-rgb), 0.2);
+    border-radius: 20px;
+    letter-spacing: 0.02em;
+}
+
 .category-empty-state {
     width: 100%;
     flex-direction: column;

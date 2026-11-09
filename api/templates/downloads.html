@@ -16,7 +16,7 @@
     <script src="{{ROOT_URL}}/api/static/js/toast.js"></script>
     <script src="{{ROOT_URL}}/api/static/js/downloads.js" defer></script>
     <script src="{{ROOT_URL}}/api/static/js/theme.js" defer></script>
-    <link rel="stylesheet" href="{{ROOT_URL}}/api/static/css/navbar.css">
+    <link rel="stylesheet" href="{{ROOT_URL}}/api/static/css/navbar.css?v=2">
     <link rel="stylesheet" href="{{ROOT_URL}}/api/static/css/toast.css">
     <link rel="stylesheet" href="{{ROOT_URL}}/api/static/css/downloads.css">
     {% if BLIND_MODE %}
@@ -39,5 +39,6 @@
         <p class="downloads-empty-state-text"></p>
       </div>
     </div>
+    {% include "partials/footer.html" %}
   </body>
 </html>

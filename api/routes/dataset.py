@@ -109,6 +109,16 @@ def buildCatalog():
 def serveCatalog():
     return buildCatalog()
 
+@datasetRouter.get("/datasets/recent")
+def serveRecentDatasets():
+    con = sqlite3.connect(DB_PATH)
+    con.row_factory = sqlite3.Row
+    cur = con.cursor()
+    cur.execute("SELECT id, name, description, path, format FROM datasets ORDER BY id DESC LIMIT 5")
+    rows = cur.fetchall()
+    con.close()
+    return [dict(row) for row in rows]
+
 @datasetRouter.get("/retrieve-categories")
 def serveCategories():
     con = sqlite3.connect(DB_PATH)
@@ -116,7 +126,13 @@ def serveCategories():
     cur = con.cursor()
     cur.execute('SELECT * FROM categories')
     rows = cur.fetchall()
+    cur.execute('SELECT tags FROM datasets')
+    dataset_rows = cur.fetchall()
     con.close()
+    counts = {}
+    for d in dataset_rows:
+        for tag in json.loads(d["tags"]):
+            counts[tag] = counts.get(tag, 0) + 1
     result = []
     for row in rows:
         current_row = {
@@ -124,6 +140,7 @@ def serveCategories():
             "url": row["url"],
             "icon": row["icon"],
             "description": row["description"],
+            "dataset_count": counts.get(row["url"], 0),
         }
         result.append(current_row)
     return result

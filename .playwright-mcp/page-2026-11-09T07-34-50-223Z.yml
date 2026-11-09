@@ -1,0 +1,33 @@
+- generic [active] [ref=e1]:
+  - navigation [ref=e2]:
+    - generic [ref=e3]:
+      - link [ref=e4] [cursor=pointer]:
+        - /url: /
+        - img "PELICANVIL logo" [ref=e5]
+      - list [ref=e6]:
+        - listitem [ref=e7]:
+          - link "Explore Datasets" [ref=e8] [cursor=pointer]:
+            - /url: /datasets
+        - listitem [ref=e9]:
+          - link "Quick Access" [ref=e10] [cursor=pointer]:
+            - /url: /quick-access
+        - listitem [ref=e11]:
+          - link "Downloads" [ref=e12] [cursor=pointer]:
+            - /url: /downloads
+        - listitem [ref=e13]:
+          - link "Docs" [ref=e14] [cursor=pointer]:
+            - /url: /documentation
+    - generic [ref=e15]:
+      - button "Toggle light/dark theme" [ref=e16] [cursor=pointer]
+      - img "Purdue logo" [ref=e21]
+  - generic [ref=e22]:
+    - generic [ref=e23]:
+      - textbox "Search all datasets by name or description" [ref=e24]
+      - button "Search" [ref=e25] [cursor=pointer]
+    - generic [ref=e26]:
+      - generic [ref=e27]: 
+      - paragraph [ref=e28]: Something went wrong loading categories.
+  - generic [ref=e30]:
+    - generic [ref=e31]: 
+    - generic [ref=e32]: Couldn't load categories. Try refreshing the page.
+    - generic [ref=e34] [cursor=pointer]: ×
