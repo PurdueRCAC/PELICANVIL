@@ -1,0 +1,111 @@
+- generic [active] [ref=e1]:
+  - navigation [ref=e2]:
+    - generic [ref=e3]:
+      - link [ref=e4] [cursor=pointer]:
+        - /url: /
+        - img "PELICANVIL logo" [ref=e5]
+      - list [ref=e6]:
+        - listitem [ref=e7]:
+          - link "Explore Datasets" [ref=e8] [cursor=pointer]:
+            - /url: /datasets
+        - listitem [ref=e9]:
+          - link "Quick Access" [ref=e10] [cursor=pointer]:
+            - /url: /quick-access
+        - listitem [ref=e11]:
+          - link "Downloads" [ref=e12] [cursor=pointer]:
+            - /url: /downloads
+        - listitem [ref=e13]:
+          - link "Docs" [ref=e14] [cursor=pointer]:
+            - /url: /documentation
+    - generic [ref=e15]:
+      - button "Toggle light/dark theme" [ref=e16] [cursor=pointer]
+      - img "Purdue logo" [ref=e21]
+  - generic [ref=e22]:
+    - generic [ref=e23]: 
+    - paragraph [ref=e24]:
+      - text: As of November 09, 2026, there are
+      - strong [ref=e25]: "3"
+      - text: publicly available datasets across
+      - strong [ref=e26]: "3"
+      - text: categories.
+  - main [ref=e27]:
+    - generic [ref=e28]:
+      - generic [ref=e29]:
+        - heading "Bring data to your workflows, not the other way around" [level=1] [ref=e30]
+        - paragraph [ref=e31]:
+          - generic [ref=e32]: 
+          - generic [ref=e33]: Discover datasets, grab a path or snippet, and get back to your analysis.
+      - generic [ref=e34]:
+        - link [ref=e35] [cursor=pointer]:
+          - /url: /datasets
+          - generic [ref=e37]:
+            - heading "Explore Datasets " [level=2] [ref=e38]:
+              - text: Explore Datasets
+              - generic [ref=e39]: 
+            - paragraph [ref=e40]: Don't have a Pelican endpoint yet? Browse a wide array of already-indexed datasets, complete with endpoints and usage examples.
+        - link [ref=e41] [cursor=pointer]:
+          - /url: /quick-access
+          - generic [ref=e43]:
+            - heading "Quick Access " [level=2] [ref=e44]:
+              - text: Quick Access
+              - generic [ref=e45]: 
+            - paragraph [ref=e46]: Already have an endpoint? Generate usage snippets and download datasets straight to your allocations.
+    - complementary [ref=e47]:
+      - generic [ref=e48]:
+        - heading "Browse by category" [level=2] [ref=e49]
+        - paragraph [ref=e50]: A growing collection of indexed datasets across research domains.
+        - generic [ref=e51]:
+          - link "Earth / Climate " [ref=e52] [cursor=pointer]:
+            - /url: /datasets/category/earth-climate
+            - generic [ref=e53]: Earth / Climate
+            - generic [ref=e54]: 
+          - link "Machine Learning " [ref=e55] [cursor=pointer]:
+            - /url: /datasets/category/machine-learning
+            - generic [ref=e56]: Machine Learning
+            - generic [ref=e57]: 
+          - link "Physics " [ref=e58] [cursor=pointer]:
+            - /url: /datasets/category/physics
+            - generic [ref=e59]: Physics
+            - generic [ref=e60]: 
+          - link "Genomics " [ref=e61] [cursor=pointer]:
+            - /url: /datasets/category/genomics
+            - generic [ref=e62]: Genomics
+            - generic [ref=e63]: 
+  - generic [ref=e64]:
+    - generic [ref=e65]:
+      - generic [ref=e66]: 
+      - generic [ref=e67]: System Status
+    - generic [ref=e68]:
+      - generic [ref=e69]:
+        - generic [ref=e71]: Core Service
+        - generic [ref=e72]: App and database healthy
+      - generic [ref=e73]:
+        - generic [ref=e75]: Federation Access
+        - generic [ref=e76]: OSDF federation reachable
+      - generic [ref=e77]:
+        - generic [ref=e79]: Downloads
+        - generic [ref=e80]: Dataset transfers working
+  - generic [ref=e81]:
+    - heading "Powered by Pelican" [level=2] [ref=e82]
+    - paragraph [ref=e83]:
+      - text: PELICANVIL is built on top of the
+      - link "Pelican Platform" [ref=e84] [cursor=pointer]:
+        - /url: https://pelicanplatform.org/
+      - text: ", the open-source data federation software behind the Open Science Data Federation."
+    - generic [ref=e85]:
+      - link " Pelican Platform" [ref=e86] [cursor=pointer]:
+        - /url: https://pelicanplatform.org/
+        - generic [ref=e87]: 
+        - text: Pelican Platform
+      - link " GitHub" [ref=e88] [cursor=pointer]:
+        - /url: https://github.com/PelicanPlatform
+        - generic [ref=e89]: 
+        - text: GitHub
+      - link " Usage Docs" [ref=e90] [cursor=pointer]:
+        - /url: https://docs.pelicanplatform.org/about-pelican
+        - generic [ref=e91]: 
+        - text: Usage Docs
+      - link " PelicanFS" [ref=e92] [cursor=pointer]:
+        - /url: https://github.com/PelicanPlatform/pelicanfs
+        - generic [ref=e93]: 
+        - text: PelicanFS

@@ -1,4 +1,4 @@
-const HEALTH_STATUS_CLASSES = {
+const HEALTH_DOT_CLASSES = {
     ok: "health-dot-ok",
     degraded: "health-dot-degraded",
     down: "health-dot-down",
@@ -19,15 +19,28 @@ async function fetchHealthStatus() {
 
 function renderHealthStatus(data) {
     const bar = document.getElementById("health-status-bar")
-    const dot = document.getElementById("health-dot")
-    const text = document.getElementById("health-text")
-    if (!data) {
-        bar.style.display = "none"
+    const items = document.getElementById("health-status-items")
+    if (!data || !bar || !items) return
+
+    if (data.overall === "unknown" || !data.areas || data.areas.length === 0) {
+        items.innerHTML = `
+            <div class="health-item">
+                <span class="health-dot health-dot-unknown"></span>
+                <span class="health-item-name">System Status</span>
+                <span class="health-item-summary">${data.summary || "Status unavailable"}</span>
+            </div>`
+        bar.style.display = ""
         return
     }
-    const cls = HEALTH_STATUS_CLASSES[data.overall] || HEALTH_STATUS_CLASSES.unknown
-    dot.className = "health-dot " + cls
-    text.textContent = data.summary
+
+    items.innerHTML = data.areas.map(area => `
+        <div class="health-item">
+            <span class="health-dot ${HEALTH_DOT_CLASSES[area.status] || "health-dot-unknown"}"></span>
+            <span class="health-item-name">${area.name}</span>
+            <span class="health-item-summary">${area.summary}</span>
+        </div>`
+    ).join("")
+
     bar.style.display = ""
 }
 

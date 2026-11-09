@@ -277,50 +277,84 @@ body {
 
 /* #region Health status widget */
 .health-status-bar {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
     max-width: 120rem;
     margin: 0 auto;
-    padding: 1rem clamp(2rem, 1vw + 1.5rem, 5rem);
+    padding: 1.25rem clamp(2rem, 1vw + 1.5rem, 5rem);
     background-color: var(--bg-sunken);
     border-top: 1px solid var(--border-default);
     border-bottom: 1px solid var(--border-default);
 }
+.health-status-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.875rem;
+}
+.health-status-icon {
+    font-size: 1.1rem;
+    color: var(--accent-text);
+}
+.health-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+.health-status-items {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.25rem;
+}
+.health-item {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    padding: 0.5rem 1rem;
+    background-color: var(--bg-surface);
+    border: 1px solid var(--border-default);
+    border-radius: 8px;
+    min-width: 0;
+}
 .health-dot {
     flex-shrink: 0;
-    width: 0.625rem;
-    height: 0.625rem;
+    width: 0.5rem;
+    height: 0.5rem;
     border-radius: 50%;
     background-color: var(--text-faint);
-    box-shadow: 0 0 0 3px rgba(119, 116, 102, 0.2);
 }
 .health-dot-ok {
     background-color: #34d399;
-    box-shadow: 0 0 0 3px rgba(52, 211, 153, 0.2);
+    box-shadow: 0 0 0 3px rgba(52, 211, 153, 0.15);
 }
 .health-dot-degraded {
     background-color: #fbbf24;
-    box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.2);
+    box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.15);
 }
 .health-dot-down {
     background-color: #f87171;
-    box-shadow: 0 0 0 3px rgba(248, 113, 113, 0.2);
+    box-shadow: 0 0 0 3px rgba(248, 113, 113, 0.15);
 }
 .health-dot-unknown {
     background-color: var(--text-faint);
+    box-shadow: 0 0 0 3px rgba(119, 116, 102, 0.15);
 }
-.health-label {
+.health-item-name {
     font-size: 0.8rem;
     font-weight: 600;
-    color: var(--text-secondary);
-    letter-spacing: 0.03em;
-    text-transform: uppercase;
+    color: var(--text-primary);
+    white-space: nowrap;
 }
-.health-text {
-    font-size: 0.875rem;
+.health-item-summary {
+    font-size: 0.8rem;
     color: var(--text-muted);
-    line-height: 1.4;
+    white-space: nowrap;
+}
+@media (max-width: 900px) {
+    .health-status-items {
+        flex-direction: column;
+        gap: 0.625rem;
+    }
 }
 /* #endregion */
 
