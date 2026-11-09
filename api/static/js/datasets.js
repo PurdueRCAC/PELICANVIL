@@ -391,7 +391,7 @@ function addDatasetCard(dataset) {
                   <p class="dataset-snippet-option-description"></p>
                   </div>
                 <div class="dataset-snippet-wrapper">
-                  <div class="fa fa-copy"></div>
+                  <div class="snippet-copy-btn fa fa-copy"></div>
                   <div class="dataset-snippet-box"> </div>
                 </div>
               </div>
@@ -1316,7 +1316,7 @@ function buildSnippets(snippetBox, dataset){
   const snippetSelectorArrow = snippetSelectorBox.querySelector(".dataset-snippet-selector-arrow")
   const snippetSelectorContent = snippetHeader.querySelector(".dataset-snippet-selector-content")
   const snippetOptionDescription = snippetHeader.querySelector(".dataset-snippet-option-description")
-  const snippetCopy = snippetBox.querySelector(".fa-copy")
+  const snippetCopy = snippetBox.querySelector(".snippet-copy-btn")
   snippetCopy.dataset.copyData = ""
   snippetSelectorText.textContent = "None"
   snippetSelectorContent.innerHTML =  /* html */`

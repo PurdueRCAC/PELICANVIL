@@ -277,12 +277,11 @@ body {
 
 /* #region Health status widget */
 .health-status-bar {
-    max-width: 120rem;
-    margin: 0 auto;
-    padding: 1.25rem clamp(2rem, 1vw + 1.5rem, 5rem);
+    margin-top: 2.5rem;
+    padding: 1.25rem;
     background-color: var(--bg-sunken);
-    border-top: 1px solid var(--border-default);
-    border-bottom: 1px solid var(--border-default);
+    border: 1px solid var(--border-default);
+    border-radius: 10px;
 }
 .health-status-header {
     display: flex;
@@ -366,10 +365,11 @@ body {
 
 /* #region Recently Added */
 .recent-datasets {
-    max-width: 120rem;
-    margin: 0 auto;
-    padding: 1.25rem clamp(2rem, 1vw + 1.5rem, 5rem);
-    border-top: 1px solid var(--border-default);
+    margin-top: 1.25rem;
+    padding: 1.25rem;
+    background-color: var(--bg-sunken);
+    border: 1px solid var(--border-default);
+    border-radius: 10px;
 }
 .recent-datasets-header {
     display: flex;
@@ -430,4 +430,57 @@ body {
 }
 /* #endregion */
 
-/* Footer styles moved to navbar.css (shared across all pages) */
+/* #region Powered by Pelican */
+.pelican-credit {
+    width: 100%;
+    padding: 2rem clamp(2rem, 1vw + 1.5rem, 5rem);
+    background-color: var(--bg-sunken);
+    border-top: 1px solid var(--border-default);
+    min-width: 0;
+}
+.pelican-credit-title {
+    font-size: clamp(1.25rem, 0.9rem + 0.9vw, 1.625rem);
+    font-weight: 600;
+    color: var(--text-primary);
+}
+.pelican-credit-description {
+    margin-top: 0.5rem;
+    max-width: 60rem;
+    font-size: clamp(0.9rem, 0.75rem + 0.4vw, 1rem);
+    line-height: 1.5;
+    color: var(--text-muted);
+    min-width: 0;
+}
+.pelican-credit-description .pelican-credit-link {
+    color: var(--accent-text);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+.pelican-credit-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 1.25rem;
+    min-width: 0;
+}
+.pelican-credit-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background-color: var(--bg-surface);
+    border: 1px solid var(--border-default);
+    border-radius: 20px;
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    font-weight: 500;
+    transition: border-color 0.15s ease, color 0.15s ease;
+}
+.pelican-credit-pill i {
+    color: var(--accent-text);
+}
+.pelican-credit-pill:hover {
+    border-color: var(--accent-text);
+    color: var(--accent-text);
+}
+/* #endregion */

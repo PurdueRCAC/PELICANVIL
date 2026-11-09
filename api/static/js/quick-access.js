@@ -230,7 +230,7 @@ function buildSnippets(path){
         <p class="dataset-snippet-option-description"></p>
         </div>
             <div class="dataset-snippet-wrapper">
-            <div class="fa fa-copy"></div>
+            <div class="snippet-copy-btn fa fa-copy"></div>
             <div class="dataset-snippet-box"> </div>
         </div>
                 `
@@ -240,7 +240,7 @@ function buildSnippets(path){
         const snippetSelectorArrow = snippetSelectorBox.querySelector(".dataset-snippet-selector-arrow")
         const snippetSelectorContent = snippetHeader.querySelector(".dataset-snippet-selector-content")
         const snippetOptionDescription = snippetHeader.querySelector(".dataset-snippet-option-description")
-        const snippetCopy = snippetWindow.querySelector(".fa-copy")
+        const snippetCopy = snippetWindow.querySelector(".snippet-copy-btn")
         snippetCopy.dataset.copyData = ""
         snippetSelectorText.textContent = "None"
         snippetSelectorContent.innerHTML =  /* html */`

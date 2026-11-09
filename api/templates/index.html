@@ -65,6 +65,27 @@
                     </div>
                 </a>
             </div>
+            <section class="health-status-bar" id="health-status-bar">
+                <div class="health-status-header">
+                    <i class="ti ti-activity-heartbeat health-status-icon"></i>
+                    <span class="health-label">System Status</span>
+                    <span class="health-timestamp" id="health-status-timestamp" style="display:none"></span>
+                </div>
+                <div class="health-status-items" id="health-status-items">
+                    <div class="health-item">
+                        <span class="health-dot health-dot-unknown"></span>
+                        <span class="health-item-name">System Status</span>
+                        <span class="health-item-summary">Checking...</span>
+                    </div>
+                </div>
+            </section>
+            <section class="recent-datasets" id="recent-datasets" style="display:none">
+                <div class="recent-datasets-header">
+                    <i class="ti ti-clock recent-datasets-icon"></i>
+                    <span class="recent-datasets-label">Recently Added</span>
+                </div>
+                <div class="recent-datasets-list" id="recent-datasets-list"></div>
+            </section>
         </section>
         <aside class="right-column">
             <div class="datasets-panel">
@@ -95,27 +116,6 @@
             </div>
         </aside>
     </main>
-    <section class="health-status-bar" id="health-status-bar">
-        <div class="health-status-header">
-            <i class="ti ti-activity-heartbeat health-status-icon"></i>
-            <span class="health-label">System Status</span>
-            <span class="health-timestamp" id="health-status-timestamp" style="display:none"></span>
-        </div>
-        <div class="health-status-items" id="health-status-items">
-            <div class="health-item">
-                <span class="health-dot health-dot-unknown"></span>
-                <span class="health-item-name">System Status</span>
-                <span class="health-item-summary">Checking...</span>
-            </div>
-        </div>
-    </section>
-    <section class="recent-datasets" id="recent-datasets" style="display:none">
-        <div class="recent-datasets-header">
-            <i class="ti ti-clock recent-datasets-icon"></i>
-            <span class="recent-datasets-label">Recently Added</span>
-        </div>
-        <div class="recent-datasets-list" id="recent-datasets-list"></div>
-    </section>
     <script src="{{ ROOT_URL }}/api/static/js/health-status.js?v=3" defer></script>
     <script>
     document.addEventListener("DOMContentLoaded", async () => {

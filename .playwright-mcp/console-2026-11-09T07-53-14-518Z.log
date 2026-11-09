@@ -1,0 +1,4 @@
+[    2950ms] [ERROR] Failed to load resource: the server responded with a status of 502 (Bad Gateway) @ http://127.0.0.1:8765/datasets/category/list-path?path=%2Ftest%2Fpath1:0
+[    2950ms] [LOG] error with Error: HTTP error! status 502 
+    at retrieveDirectoryPaths (http://127.0.0.1:8765/api/static/js/datasets.js:703:13)
+    at async makeFolderCards (http://127.0.0.1:8765/api/static/js/datasets.js:544:17) @ http://127.0.0.1:8765/api/static/js/datasets.js:716

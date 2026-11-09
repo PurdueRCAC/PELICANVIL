@@ -45,8 +45,8 @@ async function addCategoryCard(category){
                     <img src="${window.ROOT_PATH}/categories/${category["url"]}/icon" alt="category card icon" onerror="this.onerror=null;this.src=CATEGORY_ICON_FALLBACK;"></img>
                 </div>
                 <h2 class="category-card-name">${category["name"]}</h2>
-                <p class="category-card-description-text">${category["description"]}</p>
                 <span class="category-card-count">${countLabel}</span>
+                <p class="category-card-description-text">${category["description"]}</p>
             </div>
         </a>
         `

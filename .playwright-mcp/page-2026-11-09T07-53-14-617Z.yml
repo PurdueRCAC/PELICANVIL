@@ -1,0 +1,59 @@
+- generic [ref=f2e2]:
+  - navigation [ref=f2e3]:
+    - generic [ref=f2e4]:
+      - link [ref=f2e5] [cursor=pointer]:
+        - /url: /
+        - img "PELICANVIL logo" [ref=f2e6]
+      - list [ref=f2e7]:
+        - listitem [ref=f2e8]:
+          - link "Explore Datasets" [ref=f2e9] [cursor=pointer]:
+            - /url: /datasets
+        - listitem [ref=f2e10]:
+          - link "Quick Access" [ref=f2e11] [cursor=pointer]:
+            - /url: /quick-access
+        - listitem [ref=f2e12]:
+          - link "Downloads" [ref=f2e13] [cursor=pointer]:
+            - /url: /downloads
+        - listitem [ref=f2e14]:
+          - link "Docs" [ref=f2e15] [cursor=pointer]:
+            - /url: /documentation
+    - generic [ref=f2e16]:
+      - button "Toggle light/dark theme" [ref=f2e17] [cursor=pointer]
+      - img "Purdue logo" [ref=f2e22]
+  - generic [ref=f2e23]:
+    - generic [ref=f2e24]:
+      - textbox "Filter datasets by name or description" [ref=f2e26]
+      - generic [ref=f2e27]:
+        - generic [ref=f2e28]:
+          - generic [ref=f2e29]: File type
+          - combobox "File type" [ref=f2e30] [cursor=pointer]:
+            - option "All types" [selected]
+            - option "HDF5"
+        - generic [ref=f2e31]:
+          - generic [ref=f2e32]: Category
+          - combobox "Category" [ref=f2e33] [cursor=pointer]:
+            - option "All categories" [selected]
+            - option "Earth / Climate"
+        - generic [ref=f2e34]:
+          - generic [ref=f2e35]: Streaming
+          - combobox "Streaming" [ref=f2e36] [cursor=pointer]:
+            - option "All datasets" [selected]
+            - option "Streamable only"
+            - option "Download only"
+    - generic [ref=f2e37]:
+      - generic [ref=f2e38]:
+        - generic [ref=f2e39] [cursor=pointer]: Test Dataset 1
+        - generic [ref=f2e42]:
+          - generic "Predominant file type — manually set by whoever added this dataset; a small number of incidental files (e.g. an auto-generated index page) may not match" [ref=f2e43]:
+            - generic [ref=f2e44]: 
+            - text: HDF5
+          - generic [ref=f2e45]:
+            - generic [ref=f2e46]: 
+            - text: Download only
+          - generic [ref=f2e47]:
+            - generic [ref=f2e48]: 
+            - text: public
+          - generic "This dataset hasn't been indexed yet" [ref=f2e49]:
+            - generic [ref=f2e50]: 
+            - text: Size unavailable
+      - text:            

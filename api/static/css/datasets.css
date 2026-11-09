@@ -531,7 +531,7 @@ clamp(s_1px, calc(b + (m*100)vw), s_2px)
   display: flex;
   flex-direction: column;
 }
-.dataset-snippet-wrapper .fa-copy {
+.dataset-snippet-wrapper .snippet-copy-btn {
   position: absolute;
   top: 12px;
   right: 40px;
@@ -544,7 +544,7 @@ clamp(s_1px, calc(b + (m*100)vw), s_2px)
   transition: color 0.15s, background-color 0.15s;
 }
 
-.dataset-snippet-wrapper .fa-copy:hover {
+.dataset-snippet-wrapper .snippet-copy-btn:hover {
   color: var(--accent-text);
   background-color: rgba(var(--accent-rgb), 0.12);
 }
