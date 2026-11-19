@@ -1,0 +1,121 @@
+- generic [active] [ref=f2e1]:
+  - navigation [ref=f2e2]:
+    - generic [ref=f2e3]:
+      - link [ref=f2e4] [cursor=pointer]:
+        - /url: /
+        - img "PELICANVIL logo" [ref=f2e5]
+      - list [ref=f2e6]:
+        - listitem [ref=f2e7]:
+          - link "Explore Datasets" [ref=f2e8] [cursor=pointer]:
+            - /url: /datasets
+        - listitem [ref=f2e9]:
+          - link "Quick Access" [ref=f2e10] [cursor=pointer]:
+            - /url: /quick-access
+        - listitem [ref=f2e11]:
+          - link "Downloads" [ref=f2e12] [cursor=pointer]:
+            - /url: /downloads
+        - listitem [ref=f2e13]:
+          - link "Docs" [ref=f2e14] [cursor=pointer]:
+            - /url: /documentation
+    - generic [ref=f2e15]:
+      - button "Toggle light/dark theme" [ref=f2e16] [cursor=pointer]
+      - img "Purdue logo" [ref=f2e21]
+  - generic [ref=f2e22]:
+    - generic [ref=f2e23]: 
+    - paragraph [ref=f2e24]:
+      - text: As of November 18, 2026, there are
+      - strong [ref=f2e25]: "3"
+      - text: publicly available datasets across
+      - strong [ref=f2e26]: "3"
+      - text: categories.
+  - main [ref=f2e27]:
+    - generic [ref=f2e28]:
+      - generic [ref=f2e29]:
+        - heading "Bring data to your workflows, not the other way around" [level=1] [ref=f2e30]
+        - paragraph [ref=f2e31]:
+          - generic [ref=f2e32]: 
+          - generic [ref=f2e33]: Discover datasets, grab a path or snippet, and get back to your analysis.
+      - generic [ref=f2e34]:
+        - link [ref=f2e35] [cursor=pointer]:
+          - /url: /datasets
+          - generic [ref=f2e37]:
+            - heading "Explore Datasets " [level=2] [ref=f2e38]:
+              - text: Explore Datasets
+              - generic [ref=f2e39]: 
+            - paragraph [ref=f2e40]: Don't have a Pelican endpoint yet? Browse a wide array of already-indexed datasets, complete with endpoints and usage examples.
+        - link [ref=f2e41] [cursor=pointer]:
+          - /url: /quick-access
+          - generic [ref=f2e43]:
+            - heading "Quick Access " [level=2] [ref=f2e44]:
+              - text: Quick Access
+              - generic [ref=f2e45]: 
+            - paragraph [ref=f2e46]: Already have an endpoint? Generate usage snippets and download datasets straight to your allocations.
+      - generic [ref=f2e47]:
+        - generic [ref=f2e48]:
+          - generic [ref=f2e49]: 
+          - generic [ref=f2e50]: System Status
+          - generic [ref=f2e51]: Last checked 2h ago
+        - generic [ref=f2e52]:
+          - generic [ref=f2e53]:
+            - generic [ref=f2e55]: Core Service
+            - generic [ref=f2e56]: App and database healthy
+          - generic [ref=f2e57]:
+            - generic [ref=f2e59]: Federation Access
+            - generic [ref=f2e60]: OSDF federation reachable
+          - generic [ref=f2e61]:
+            - generic [ref=f2e63]: Downloads
+            - generic [ref=f2e64]: Dataset transfers working
+      - generic [ref=f2e65]:
+        - generic [ref=f2e66]:
+          - generic [ref=f2e67]: 
+          - generic [ref=f2e68]: Recently Added
+        - generic [ref=f2e69]:
+          - link "Test Dataset 3 NetCDF" [ref=f2e70] [cursor=pointer]:
+            - /url: /datasets
+            - generic [ref=f2e71]: Test Dataset 3
+            - generic [ref=f2e72]: NetCDF
+          - link "Test Dataset 2 CSV" [ref=f2e73] [cursor=pointer]:
+            - /url: /datasets
+            - generic [ref=f2e74]: Test Dataset 2
+            - generic [ref=f2e75]: CSV
+          - link "Test Dataset 1 HDF5" [ref=f2e76] [cursor=pointer]:
+            - /url: /datasets
+            - generic [ref=f2e77]: Test Dataset 1
+            - generic [ref=f2e78]: HDF5
+    - complementary [ref=f2e79]:
+      - generic [ref=f2e80]:
+        - heading "Browse by category" [level=2] [ref=f2e81]
+        - paragraph [ref=f2e82]: A growing collection of indexed datasets across research domains.
+        - generic [ref=f2e83]:
+          - link "Earth / Climate " [ref=f2e84] [cursor=pointer]:
+            - /url: /datasets/category/earth-climate
+            - generic [ref=f2e85]: Earth / Climate
+            - generic [ref=f2e86]: 
+          - link "Machine Learning " [ref=f2e87] [cursor=pointer]:
+            - /url: /datasets/category/machine-learning
+            - generic [ref=f2e88]: Machine Learning
+            - generic [ref=f2e89]: 
+          - link "Physics " [ref=f2e90] [cursor=pointer]:
+            - /url: /datasets/category/physics
+            - generic [ref=f2e91]: Physics
+            - generic [ref=f2e92]: 
+          - link "Genomics " [ref=f2e93] [cursor=pointer]:
+            - /url: /datasets/category/genomics
+            - generic [ref=f2e94]: Genomics
+            - generic [ref=f2e95]: 
+  - contentinfo [ref=f2e96]:
+    - heading "Powered by Pelican" [level=2] [ref=f2e97]
+    - paragraph [ref=f2e98]:
+      - text: PELICANVIL is built on top of the
+      - link "Pelican Platform" [ref=f2e99] [cursor=pointer]:
+        - /url: https://pelicanplatform.org/
+      - text: ", the open-source data federation software behind the Open Science Data Federation."
+    - generic [ref=f2e100]:
+      - link "Pelican Platform" [ref=f2e101] [cursor=pointer]:
+        - /url: https://pelicanplatform.org/
+      - link "GitHub" [ref=f2e102] [cursor=pointer]:
+        - /url: https://github.com/PelicanPlatform
+      - link "Usage Docs" [ref=f2e103] [cursor=pointer]:
+        - /url: https://docs.pelicanplatform.org/about-pelican
+      - link "PelicanFS" [ref=f2e104] [cursor=pointer]:
+        - /url: https://github.com/PelicanPlatform/pelicanfs

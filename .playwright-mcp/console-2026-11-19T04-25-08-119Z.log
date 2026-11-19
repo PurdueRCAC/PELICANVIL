@@ -1,0 +1,8 @@
+[      46ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://127.0.0.1:8765/categories/earth-climate/icon:1
+[      52ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://127.0.0.1:8765/categories/machine-learning/icon:1
+[      55ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://127.0.0.1:8765/categories/physics/icon:1
+[      58ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://127.0.0.1:8765/categories/genomics/icon:1
+[    8756ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://127.0.0.1:8765/categories/earth-climate/icon:1
+[    8756ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://127.0.0.1:8765/categories/machine-learning/icon:1
+[    8757ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://127.0.0.1:8765/categories/physics/icon:1
+[    8757ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://127.0.0.1:8765/categories/genomics/icon:1

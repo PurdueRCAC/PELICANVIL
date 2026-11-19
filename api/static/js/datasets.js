@@ -10,6 +10,38 @@
 
 const user = window.USER;
 
+function getFavorites() {
+  try { return JSON.parse(localStorage.getItem("pelican-favorites") || "[]"); } catch { return []; }
+}
+function saveFavorites(favs) {
+  try { localStorage.setItem("pelican-favorites", JSON.stringify(favs)); } catch {}
+}
+function isFavorite(datasetName) {
+  return getFavorites().includes(datasetName);
+}
+function toggleFavorite(datasetName) {
+  const favs = getFavorites();
+  const idx = favs.indexOf(datasetName);
+  if (idx === -1) { favs.push(datasetName); } else { favs.splice(idx, 1); }
+  saveFavorites(favs);
+  return idx === -1;
+}
+
+function trackRecentlyViewed(dataset) {
+  try {
+    let recent = JSON.parse(localStorage.getItem("pelican-recently-viewed") || "[]");
+    recent = recent.filter(d => d.name !== dataset.name);
+    recent.unshift({
+      name: dataset.name,
+      category: (dataset.tags || [])[0] || "",
+      format: dataset.format || "",
+      viewedAt: Date.now()
+    });
+    if (recent.length > 8) recent = recent.slice(0, 8);
+    localStorage.setItem("pelican-recently-viewed", JSON.stringify(recent));
+  } catch {}
+}
+
 const rootPaths = {
   home: `/home/${USER}`,
   project: "/anvil/projects",
@@ -366,12 +398,17 @@ function addDatasetCard(dataset) {
     newCard.dataset.format = dataset["format"] || "";
     newCard.dataset.streamable = Boolean(dataset["streamable"]);
     newCard.dataset.tags = (dataset["tags"] || []).join("|");
+    const starred = isFavorite(dataset.name);
     newCard.innerHTML = /* html */ `
             <div class="dataset-card-top">
                 <div class="dataset-card-header">
                     <span class="dataset-card-title-box">${dataset.name}</span>
+                    <button class="dataset-favorite-btn${starred ? " favorited" : ""}" title="${starred ? "Remove from favorites" : "Add to favorites"}">
+                        <i class="fa ${starred ? "fa-star" : "fa-star-o"}"></i>
+                    </button>
                     <span class="arrow"></span>
                 </div>
+                <div class="dataset-card-hover-preview">${dataset.description || ""}</div>
                 <div class="dataset-meta-row">
                   ${dataset["format"] ? `<span class="dataset-meta-badge dataset-meta-format" title="Predominant file type — manually set by whoever added this dataset; a small number of incidental files (e.g. an auto-generated index page) may not match"><i class="fa fa-file-o"></i>${dataset["format"]}</span>` : ""}
                   <span class="dataset-meta-badge ${dataset["streamable"] ? "dataset-meta-streamable" : "dataset-meta-static"}">
@@ -495,6 +532,7 @@ function addDatasetCard(dataset) {
         drop_down.style.display = "flex";
         newCard.dataset.toggled = "true";
         arrow.classList.toggle("flipped");
+        trackRecentlyViewed(dataset);
         if (drop_down.isLoaded !== true) {
 
           loadDirectory(
@@ -509,7 +547,17 @@ function addDatasetCard(dataset) {
     });
     
     buildSnippets(snippets,dataset)
-    
+
+    const favBtn = newCard.querySelector(".dataset-favorite-btn");
+    favBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const nowFav = toggleFavorite(dataset.name);
+      favBtn.classList.toggle("favorited", nowFav);
+      favBtn.querySelector("i").className = nowFav ? "fa fa-star" : "fa fa-star-o";
+      favBtn.title = nowFav ? "Remove from favorites" : "Add to favorites";
+      showToast(nowFav ? `Added "${dataset.name}" to favorites` : `Removed "${dataset.name}" from favorites`, "success", 2000);
+    });
+
     clearButton.addEventListener("click", ()=>{
       file_container.downloadPaths.clear()
       updateSelectionAmountBox(file_container, downloadAmount)

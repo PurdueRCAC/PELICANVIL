@@ -1,0 +1,98 @@
+- generic [ref=e1]:
+  - generic [ref=e2]:
+    - navigation [ref=e3]:
+      - generic [ref=e4]:
+        - link [ref=e5] [cursor=pointer]:
+          - /url: /
+          - img "PELICANVIL logo" [ref=e6]
+        - list [ref=e7]:
+          - listitem [ref=e8]:
+            - link "Explore Datasets" [ref=e9] [cursor=pointer]:
+              - /url: /datasets
+          - listitem [ref=e10]:
+            - link "Quick Access" [ref=e11] [cursor=pointer]:
+              - /url: /quick-access
+          - listitem [ref=e12]:
+            - link "Downloads" [ref=e13] [cursor=pointer]:
+              - /url: /downloads
+          - listitem [ref=e14]:
+            - link "Docs" [ref=e15] [cursor=pointer]:
+              - /url: /documentation
+      - generic [ref=e16]:
+        - button "Toggle light/dark theme" [ref=e17] [cursor=pointer]
+        - img "Purdue logo" [ref=e22]
+    - navigation [ref=e23]:
+      - link "Home" [ref=e24] [cursor=pointer]:
+        - /url: /
+      - generic [ref=e25]: /
+      - link "Datasets" [ref=e26] [cursor=pointer]:
+        - /url: /datasets
+      - generic [ref=e27]: /
+      - generic [ref=e28]: earth-climate
+    - generic [ref=e29]:
+      - generic [ref=e30]:
+        - textbox "Filter datasets by name or description" [ref=e32]
+        - generic [ref=e33]:
+          - generic [ref=e34]:
+            - generic [ref=e35]: File type
+            - combobox "File type" [ref=e36] [cursor=pointer]:
+              - option "All types" [selected]
+              - option "HDF5"
+              - option "NetCDF"
+          - generic [ref=e37]:
+            - generic [ref=e38]: Category
+            - combobox "Category" [ref=e39] [cursor=pointer]:
+              - option "All categories" [selected]
+              - option "Earth / Climate"
+              - option "Physics"
+          - generic [ref=e40]:
+            - generic [ref=e41]: Streaming
+            - combobox "Streaming" [ref=e42] [cursor=pointer]:
+              - option "All datasets" [selected]
+              - option "Streamable only"
+              - option "Download only"
+      - text:  
+      - generic [ref=e43]:
+        - generic [ref=e44]:
+          - generic [ref=e45] [cursor=pointer]:
+            - generic [ref=e46]: Test Dataset 1
+            - button "" [active] [ref=e76]
+          - generic [ref=e75]: A test climate dataset for local development
+          - generic [ref=e50]:
+            - generic "Predominant file type — manually set by whoever added this dataset; a small number of incidental files (e.g. an auto-generated index page) may not match" [ref=e51]:
+              - generic [ref=e52]: 
+              - text: HDF5
+            - generic [ref=e53]:
+              - generic [ref=e54]: 
+              - text: Streamable
+            - generic [ref=e55]:
+              - generic [ref=e56]: 
+              - text: Public
+            - generic "This dataset hasn't been indexed yet" [ref=e57]:
+              - generic [ref=e58]: 
+              - text: Size unavailable
+        - text:            
+      - generic [ref=e59]:
+        - generic [ref=e60]:
+          - generic [ref=e61] [cursor=pointer]:
+            - generic [ref=e62]: Test Dataset 3
+            - button "" [ref=e63]
+          - generic: Physics simulation outputs
+          - generic [ref=e66]:
+            - generic "Predominant file type — manually set by whoever added this dataset; a small number of incidental files (e.g. an auto-generated index page) may not match" [ref=e67]:
+              - generic [ref=e68]: 
+              - text: NetCDF
+            - generic [ref=e69]:
+              - generic [ref=e70]: 
+              - text: Streamable
+            - generic [ref=e71]:
+              - generic [ref=e72]: 
+              - text: Public
+            - generic "This dataset hasn't been indexed yet" [ref=e73]:
+              - generic [ref=e74]: 
+              - text: Size unavailable
+        - text:            
+  - generic [ref=e78]:
+    - generic [ref=e79]: 
+    - generic [ref=e80]: Added "Test Dataset 1" to favorites
+    - generic [ref=e82] [cursor=pointer]: ×

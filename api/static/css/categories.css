@@ -260,4 +260,120 @@ html, body {
     color: var(--text-muted);
 }
 
+/* #region Recently Viewed */
+.recently-viewed-section {
+    margin-bottom: 1.25rem;
+}
+.recently-viewed-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 0.75rem;
+}
+.recently-viewed-icon {
+    font-size: 1rem;
+    color: var(--text-faint);
+}
+.recently-viewed-label {
+    font-family: Poppins, sans-serif;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+.recently-viewed-list {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+.recently-viewed-card {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 16px;
+    background-color: var(--bg-surface);
+    border: 1px solid var(--border-default);
+    border-radius: 8px;
+    text-decoration: none;
+    transition: border-color 0.2s ease, background-color 0.2s ease;
+    min-width: 0;
+}
+.recently-viewed-card:hover {
+    border-color: var(--accent-text);
+    background-color: var(--bg-elevated);
+}
+.recently-viewed-name {
+    font-family: Poppins, sans-serif;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 220px;
+}
+.recently-viewed-meta {
+    font-family: Poppins, sans-serif;
+    font-size: 0.72rem;
+    color: var(--text-faint);
+    white-space: nowrap;
+}
+/* #endregion */
+
+/* #region Favorites */
+.favorites-section {
+    margin-bottom: 1.25rem;
+}
+.favorites-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 0.75rem;
+}
+.favorites-icon {
+    font-size: 1rem;
+    color: var(--accent-text);
+}
+.favorites-label {
+    font-family: Poppins, sans-serif;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+.favorites-list {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+.favorites-card {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    background-color: var(--bg-surface);
+    border: 1px solid var(--border-default);
+    border-radius: 8px;
+    transition: border-color 0.2s ease;
+}
+.favorites-card:hover {
+    border-color: var(--accent-text);
+}
+.favorites-card-star {
+    color: var(--accent-text);
+    font-size: 0.85rem;
+}
+.favorites-card-name {
+    font-family: Poppins, sans-serif;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 220px;
+}
+/* #endregion */
 

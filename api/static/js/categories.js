@@ -94,8 +94,42 @@ function initCategorySearch(){
         }
     });
 }
+function renderRecentlyViewed() {
+    try {
+        const recent = JSON.parse(localStorage.getItem("pelican-recently-viewed") || "[]");
+        if (!recent.length) return;
+        const section = document.getElementById("recently-viewed");
+        const list = document.getElementById("recently-viewed-list");
+        list.innerHTML = recent.map(d => `
+            <a class="recently-viewed-card" href="${window.ROOT_PATH}/datasets/category/${d.category}">
+                <span class="recently-viewed-name">${d.name}</span>
+                <span class="recently-viewed-meta">${d.format}</span>
+            </a>
+        `).join("");
+        section.style.display = "";
+    } catch {}
+}
+
+function renderFavorites() {
+    try {
+        const favs = JSON.parse(localStorage.getItem("pelican-favorites") || "[]");
+        if (!favs.length) return;
+        const section = document.getElementById("favorites-section");
+        const list = document.getElementById("favorites-list");
+        list.innerHTML = favs.map(name => `
+            <div class="favorites-card">
+                <i class="fa fa-star favorites-card-star"></i>
+                <span class="favorites-card-name">${name}</span>
+            </div>
+        `).join("");
+        section.style.display = "";
+    } catch {}
+}
+
 function main(){
     document.addEventListener("DOMContentLoaded", (event) => {
+        renderRecentlyViewed();
+        renderFavorites();
         fetchCategories();
         initCategorySearch();
     })
