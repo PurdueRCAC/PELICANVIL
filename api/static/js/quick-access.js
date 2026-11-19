@@ -275,6 +275,7 @@ function buildSnippets(path){
             snippetCopy.classList.remove("fa-copy")
             snippetCopy.classList.add("fa-check")
             snippetCopy.style.color = "var(--success)"
+            showToast("Snippet copied to clipboard", "success", 2000)
             setTimeout(() => {
                 snippetCopy.classList.remove("fa-check")
                 snippetCopy.classList.add("fa-copy")

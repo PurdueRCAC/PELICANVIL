@@ -15,7 +15,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <script src="{{ROOT_URL}}/api/static/js/toast.js"></script>
-    <script src="{{ROOT_URL}}/api/static/js/categories.js?v=2"></script>
+    <script src="{{ROOT_URL}}/api/static/js/categories.js?v=3"></script>
     <script src="{{ROOT_URL}}/api/static/js/theme.js" defer></script>
     <link rel="stylesheet" href="{{ROOT_URL}}/api/static/css/navbar.css?v=2">
     <link rel="stylesheet" href="{{ROOT_URL}}/api/static/css/toast.css">
@@ -26,6 +26,11 @@
   </head>
   <body>
     {% include "partials/navbar.html" %}
+    <nav class="page-breadcrumbs">
+      <a class="breadcrumb-link" href="{{ROOT_URL}}/">Home</a>
+      <span class="breadcrumb-sep">/</span>
+      <span class="breadcrumb-current">Datasets</span>
+    </nav>
     <div class="category-page">
       <div class="category-search-bar">
         <input type="text" class="category-search-input" placeholder="Search all datasets by name or description">

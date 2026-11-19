@@ -123,8 +123,30 @@ const snippetDescriptions = {
  * Fetches datasets from datasets.json and for each datasets makes a new card
  * @returns {Promise<void}
  */
+function showDatasetSkeletons() {
+  const container = document.querySelector(".dataset-card-container");
+  for (let i = 0; i < 3; i++) {
+    const skel = document.createElement("div");
+    skel.className = "skeleton-card dataset-skeleton";
+    skel.innerHTML = `
+      <div class="skeleton-line skeleton-line-title"></div>
+      <div class="skeleton-line-badges">
+        <div class="skeleton-badge"></div>
+        <div class="skeleton-badge"></div>
+        <div class="skeleton-badge"></div>
+      </div>
+    `;
+    container.appendChild(skel);
+  }
+}
+
+function removeDatasetSkeletons() {
+  document.querySelectorAll(".dataset-skeleton").forEach(el => el.remove());
+}
+
 async function fetchDatasets() {
   const categoryEmptyBox = document.querySelector(".dataset-category-empty");
+  showDatasetSkeletons();
   try {
     const [datasetResponse, categoryResponse] = await Promise.all([
       fetch(`${window.ROOT_PATH}/retrieve-datasets`),
@@ -137,6 +159,7 @@ async function fetchDatasets() {
     // categories are only used to label the tags datasets already carry —
     // if this fetch fails, filtering by file type/streamable still works fine
     const categories = categoryResponse.ok ? await categoryResponse.json() : [];
+    removeDatasetSkeletons();
 
     let visibleCount = 0;
     const renderedDatasets = [];
@@ -159,6 +182,7 @@ async function fetchDatasets() {
     }
   } catch (error) {
     console.log("fetch operation failed", error);
+    removeDatasetSkeletons();
     showToast("Something went wrong loading these datasets. Try again.", "error");
     if (categoryEmptyBox) {
       categoryEmptyBox.textContent = "Something went wrong loading datasets.";
@@ -1351,6 +1375,7 @@ function buildSnippets(snippetBox, dataset){
     snippetCopy.classList.remove("fa-copy")
     snippetCopy.classList.add("fa-check")
     snippetCopy.style.color = "var(--success)"
+    showToast("Snippet copied to clipboard", "success", 2000)
     setTimeout(() => {
       snippetCopy.classList.remove("fa-check")
       snippetCopy.classList.add("fa-copy")
