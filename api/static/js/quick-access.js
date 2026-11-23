@@ -678,6 +678,21 @@ function download_file(container, download_paths, sourceName) {
 
       const result = await downloadFromPath(mediumDirectory.downloadPath, download_paths, sourceName, progressToast.update);
       progressToast.finish(result);
+
+      if (result.succeeded && result.succeeded.length > 0) {
+        const totalSize = Array.from(download_paths.values()).reduce((sum, v) => sum + (v.size || 0), 0);
+        fetch(`${window.ROOT_PATH}/api/usage/track-download`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            dataset_name: sourceName || "",
+            dataset_path: document.querySelector(".quick-access-path-input")?.value || "",
+            category: "",
+            file_count: result.succeeded.length,
+            size_bytes: totalSize,
+          }),
+        }).catch(() => {});
+      }
     });
     fileSelectorOverlay.appendChild(fileSelector);
     fileSelectorOverlay.classList.add("show");

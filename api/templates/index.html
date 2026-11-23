@@ -79,6 +79,16 @@
                     </div>
                 </div>
             </section>
+            <section class="usage-widget" id="usage-widget" style="display:none">
+                <div class="usage-widget-header">
+                    <i class="ti ti-chart-bar usage-widget-icon"></i>
+                    <span class="usage-widget-label">Download Activity</span>
+                    <span class="usage-widget-period" id="usage-widget-period"></span>
+                </div>
+                <div class="usage-widget-stats" id="usage-widget-stats"></div>
+                <div class="usage-widget-chart" id="usage-widget-chart"></div>
+                <div class="usage-widget-categories" id="usage-widget-categories"></div>
+            </section>
             <section class="recent-datasets" id="recent-datasets" style="display:none">
                 <div class="recent-datasets-header">
                     <i class="ti ti-clock recent-datasets-icon"></i>
@@ -117,6 +127,7 @@
         </aside>
     </main>
     <script src="{{ ROOT_URL }}/api/static/js/health-status.js?v=3" defer></script>
+    <script src="{{ ROOT_URL }}/api/static/js/usage-widget.js" defer></script>
     <script>
     document.addEventListener("DOMContentLoaded", async () => {
         try {
