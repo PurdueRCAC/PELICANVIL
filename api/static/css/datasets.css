@@ -328,6 +328,7 @@ clamp(s_1px, calc(b + (m*100)vw), s_2px)
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 8px;
   position: relative;
   cursor: pointer;
   width: 100%;
@@ -390,6 +391,43 @@ clamp(s_1px, calc(b + (m*100)vw), s_2px)
 }
 .dataset-favorite-btn.favorited {
   color: var(--accent-text);
+}
+
+/* Trending & popular badges */
+.dataset-trending-badge,
+.dataset-popular-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-family: Poppins, sans-serif;
+  font-size: 0.65rem;
+  font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
+  margin-bottom: 6px;
+  line-height: 1;
+}
+.dataset-trending-badge {
+  color: var(--success);
+  background-color: rgba(var(--success-rgb), 0.12);
+  border: 1px solid rgba(var(--success-rgb), 0.25);
+}
+.dataset-popular-1 {
+  color: #d4a017;
+  background-color: rgba(212, 160, 23, 0.12);
+  border: 1px solid rgba(212, 160, 23, 0.3);
+}
+.dataset-popular-2 {
+  color: #8a8a8a;
+  background-color: rgba(138, 138, 138, 0.1);
+  border: 1px solid rgba(138, 138, 138, 0.3);
+}
+.dataset-popular-3 {
+  color: #b06a20;
+  background-color: rgba(176, 106, 32, 0.1);
+  border: 1px solid rgba(176, 106, 32, 0.3);
 }
 
 /* Hover preview */

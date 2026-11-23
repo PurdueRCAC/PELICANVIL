@@ -1,0 +1,49 @@
+- generic [ref=f14e2]:
+  - navigation [ref=f14e3]:
+    - generic [ref=f14e4]:
+      - link [ref=f14e5] [cursor=pointer]:
+        - /url: /
+        - img "PELICANVIL logo" [ref=f14e6]
+      - list [ref=f14e7]:
+        - listitem [ref=f14e8]:
+          - link "Explore Datasets" [ref=f14e9] [cursor=pointer]:
+            - /url: /datasets
+        - listitem [ref=f14e10]:
+          - link "Quick Access" [ref=f14e11] [cursor=pointer]:
+            - /url: /quick-access
+        - listitem [ref=f14e12]:
+          - link "Downloads" [ref=f14e13] [cursor=pointer]:
+            - /url: /downloads
+        - listitem [ref=f14e14]:
+          - link "Docs" [ref=f14e15] [cursor=pointer]:
+            - /url: /documentation
+    - generic [ref=f14e16]:
+      - button "Toggle light/dark theme" [ref=f14e17] [cursor=pointer]
+      - img "Purdue logo" [ref=f14e22]
+  - navigation [ref=f14e23]:
+    - link "Home" [ref=f14e24] [cursor=pointer]:
+      - /url: /
+    - generic [ref=f14e25]: /
+    - link "Datasets" [ref=f14e26] [cursor=pointer]:
+      - /url: /datasets
+    - generic [ref=f14e27]: /
+    - generic [ref=f14e28]: earth-climate
+  - generic [ref=f14e29]:
+    - generic [ref=f14e30]:
+      - textbox "Filter datasets by name or description" [ref=f14e32]
+      - generic [ref=f14e33]:
+        - generic [ref=f14e34]:
+          - generic [ref=f14e35]: File type
+          - combobox "File type" [ref=f14e36] [cursor=pointer]:
+            - option "All types" [selected]
+        - generic [ref=f14e37]:
+          - generic [ref=f14e38]: Category
+          - combobox "Category" [ref=f14e39] [cursor=pointer]:
+            - option "All categories" [selected]
+        - generic [ref=f14e40]:
+          - generic [ref=f14e41]: Streaming
+          - combobox "Streaming" [ref=f14e42] [cursor=pointer]:
+            - option "All datasets" [selected]
+            - option "Streamable only"
+            - option "Download only"
+    - text:  

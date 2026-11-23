@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel, Field
-from api.core.usage_db import init_usage_tables, record_download, get_usage_summary
+from api.core.usage_db import init_usage_tables, record_download, get_usage_summary, get_dataset_rankings
 import os
 import logging
 
@@ -46,3 +46,14 @@ async def usage_stats(days: int = 30):
     except Exception:
         logger.exception("Failed to fetch usage stats")
         raise HTTPException(status_code=500, detail="Failed to fetch usage stats")
+
+
+@usageRouter.get("/rankings")
+async def dataset_rankings(limit: int = 10):
+    if limit < 1 or limit > 50:
+        raise HTTPException(status_code=400, detail="limit must be between 1 and 50")
+    try:
+        return get_dataset_rankings(limit)
+    except Exception:
+        logger.exception("Failed to fetch dataset rankings")
+        raise HTTPException(status_code=500, detail="Failed to fetch rankings")

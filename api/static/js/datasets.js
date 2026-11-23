@@ -180,9 +180,10 @@ async function fetchDatasets() {
   const categoryEmptyBox = document.querySelector(".dataset-category-empty");
   showDatasetSkeletons();
   try {
-    const [datasetResponse, categoryResponse] = await Promise.all([
+    const [datasetResponse, categoryResponse, rankingsResponse] = await Promise.all([
       fetch(`${window.ROOT_PATH}/retrieve-datasets`),
       fetch(`${window.ROOT_PATH}/retrieve-categories`),
+      fetch(`${window.ROOT_PATH}/api/usage/rankings?limit=10`).catch(() => null),
     ]);
     if (!datasetResponse.ok) {
       throw new Error(`HTTP error! status ${datasetResponse.status} `);
@@ -191,6 +192,10 @@ async function fetchDatasets() {
     // categories are only used to label the tags datasets already carry —
     // if this fetch fails, filtering by file type/streamable still works fine
     const categories = categoryResponse.ok ? await categoryResponse.json() : [];
+    const rankingsData = rankingsResponse && rankingsResponse.ok ? await rankingsResponse.json() : {};
+    const trendingNames = new Set(rankingsData.trending || []);
+    const popularMap = new Map();
+    (rankingsData.all_time || []).forEach((d, i) => popularMap.set(d.dataset_name, i + 1));
     removeDatasetSkeletons();
 
     let visibleCount = 0;
@@ -199,7 +204,7 @@ async function fetchDatasets() {
       // no CATEGORY set (the /datasets/search landing) => render every
       // dataset, so the shared search filter below decides what shows
       if (!window.CATEGORY || dataset["tags"].some((tag) => tag == window.CATEGORY)) {
-        addDatasetCard(dataset);
+        addDatasetCard(dataset, trendingNames.has(dataset.name), popularMap.get(dataset.name) || 0);
         renderedDatasets.push(dataset);
         visibleCount += 1;
       }
@@ -389,7 +394,7 @@ function initDatasetFilters(datasets, categories) {
 // per-file tracking that doesn't exist today, and would need to filter out
 // exactly this kind of incidental bucket-browsing artifact to avoid being
 // noisier than the single-string label it would replace.
-function addDatasetCard(dataset) {
+function addDatasetCard(dataset, isTrending = false, popularRank = 0) {
   try {
     const newCard = document.createElement("div");
     const container = document.querySelector(".dataset-card-container");
@@ -399,10 +404,13 @@ function addDatasetCard(dataset) {
     newCard.dataset.streamable = Boolean(dataset["streamable"]);
     newCard.dataset.tags = (dataset["tags"] || []).join("|");
     const starred = isFavorite(dataset.name);
+    const trendingBadge = isTrending ? '<span class="dataset-trending-badge"><i class="fa fa-line-chart"></i> Trending</span>' : "";
+    const popularBadge = popularRank > 0 && popularRank <= 3 ? `<span class="dataset-popular-badge dataset-popular-${popularRank}"><i class="fa fa-trophy"></i> #${popularRank}</span>` : "";
     newCard.innerHTML = /* html */ `
             <div class="dataset-card-top">
                 <div class="dataset-card-header">
                     <span class="dataset-card-title-box">${dataset.name}</span>
+                    ${trendingBadge}${popularBadge}
                     <button class="dataset-favorite-btn${starred ? " favorited" : ""}" title="${starred ? "Remove from favorites" : "Add to favorites"}">
                         <i class="fa ${starred ? "fa-star" : "fa-star-o"}"></i>
                     </button>

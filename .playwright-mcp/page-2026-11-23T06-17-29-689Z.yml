@@ -1,0 +1,102 @@
+- generic [ref=f7e2]:
+  - navigation [ref=f7e3]:
+    - generic [ref=f7e4]:
+      - link [ref=f7e5] [cursor=pointer]:
+        - /url: /
+        - img "PELICANVIL logo" [ref=f7e6]
+      - list [ref=f7e7]:
+        - listitem [ref=f7e8]:
+          - link "Explore Datasets" [ref=f7e9] [cursor=pointer]:
+            - /url: /datasets
+        - listitem [ref=f7e10]:
+          - link "Quick Access" [ref=f7e11] [cursor=pointer]:
+            - /url: /quick-access
+        - listitem [ref=f7e12]:
+          - link "Downloads" [ref=f7e13] [cursor=pointer]:
+            - /url: /downloads
+        - listitem [ref=f7e14]:
+          - link "Docs" [ref=f7e15] [cursor=pointer]:
+            - /url: /documentation
+    - generic [ref=f7e16]:
+      - button "Toggle light/dark theme" [ref=f7e17] [cursor=pointer]
+      - img "Purdue logo" [ref=f7e22]
+  - navigation [ref=f7e23]:
+    - link "Home" [ref=f7e24] [cursor=pointer]:
+      - /url: /
+    - generic [ref=f7e25]: /
+    - link "Datasets" [ref=f7e26] [cursor=pointer]:
+      - /url: /datasets
+    - generic [ref=f7e27]: /
+    - generic [ref=f7e28]: earth-climate
+  - generic [ref=f7e29]:
+    - generic [ref=f7e30]:
+      - textbox "Filter datasets by name or description" [ref=f7e32]
+      - generic [ref=f7e33]:
+        - generic [ref=f7e34]:
+          - generic [ref=f7e35]: File type
+          - combobox "File type" [ref=f7e36] [cursor=pointer]:
+            - option "All types" [selected]
+            - option "HDF5"
+            - option "NetCDF"
+        - generic [ref=f7e37]:
+          - generic [ref=f7e38]: Category
+          - combobox "Category" [ref=f7e39] [cursor=pointer]:
+            - option "All categories" [selected]
+            - option "Earth / Climate"
+            - option "Physics"
+        - generic [ref=f7e40]:
+          - generic [ref=f7e41]: Streaming
+          - combobox "Streaming" [ref=f7e42] [cursor=pointer]:
+            - option "All datasets" [selected]
+            - option "Streamable only"
+            - option "Download only"
+    - text:  
+    - generic [ref=f7e43]:
+      - generic [ref=f7e44]:
+        - generic [ref=f7e45] [cursor=pointer]:
+          - generic [ref=f7e46]: Test Dataset 1
+          - generic [ref=f7e47]:
+            - generic [ref=f7e48]: 
+            - text: "#2"
+          - button "" [ref=f7e49]
+        - generic: A test climate dataset for local development
+        - generic [ref=f7e52]:
+          - generic "Predominant file type — manually set by whoever added this dataset; a small number of incidental files (e.g. an auto-generated index page) may not match" [ref=f7e53]:
+            - generic [ref=f7e54]: 
+            - text: HDF5
+          - generic [ref=f7e55]:
+            - generic [ref=f7e56]: 
+            - text: Streamable
+          - generic [ref=f7e57]:
+            - generic [ref=f7e58]: 
+            - text: Public
+          - generic "This dataset hasn't been indexed yet" [ref=f7e59]:
+            - generic [ref=f7e60]: 
+            - text: Size unavailable
+      - text:            
+    - generic [ref=f7e61]:
+      - generic [ref=f7e62]:
+        - generic [ref=f7e63] [cursor=pointer]:
+          - generic [ref=f7e64]: Test Dataset 3
+          - generic [ref=f7e65]:
+            - generic [ref=f7e66]: 
+            - text: Trending
+          - generic [ref=f7e67]:
+            - generic [ref=f7e68]: 
+            - text: "#1"
+          - button "" [ref=f7e69]
+        - generic: Physics simulation outputs
+        - generic [ref=f7e72]:
+          - generic "Predominant file type — manually set by whoever added this dataset; a small number of incidental files (e.g. an auto-generated index page) may not match" [ref=f7e73]:
+            - generic [ref=f7e74]: 
+            - text: NetCDF
+          - generic [ref=f7e75]:
+            - generic [ref=f7e76]: 
+            - text: Streamable
+          - generic [ref=f7e77]:
+            - generic [ref=f7e78]: 
+            - text: Public
+          - generic "This dataset hasn't been indexed yet" [ref=f7e79]:
+            - generic [ref=f7e80]: 
+            - text: Size unavailable
+      - text:            

@@ -14,7 +14,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
     <link rel="stylesheet" href="{{ ROOT_URL }}/api/static/css/navbar.css?v=3">
-    <link rel="stylesheet" href="{{ ROOT_URL }}/api/static/css/home.css">
+    <link rel="stylesheet" href="{{ ROOT_URL }}/api/static/css/home.css?v=2">
     {% if BLIND_MODE %}
     <link rel="stylesheet" href="{{ ROOT_URL }}/api/static/css/blind-mode.css">
     {% endif %}
@@ -89,6 +89,14 @@
                 <div class="usage-widget-chart" id="usage-widget-chart"></div>
                 <div class="usage-widget-categories" id="usage-widget-categories"></div>
             </section>
+            <section class="popular-datasets" id="popular-datasets" style="display:none">
+                <div class="popular-datasets-header">
+                    <i class="ti ti-trophy popular-datasets-icon"></i>
+                    <span class="popular-datasets-label">Most Popular</span>
+                    <span class="popular-datasets-period" id="popular-datasets-period"></span>
+                </div>
+                <div class="popular-datasets-list" id="popular-datasets-list"></div>
+            </section>
             <section class="recent-datasets" id="recent-datasets" style="display:none">
                 <div class="recent-datasets-header">
                     <i class="ti ti-clock recent-datasets-icon"></i>
@@ -127,7 +135,7 @@
         </aside>
     </main>
     <script src="{{ ROOT_URL }}/api/static/js/health-status.js?v=3" defer></script>
-    <script src="{{ ROOT_URL }}/api/static/js/usage-widget.js" defer></script>
+    <script src="{{ ROOT_URL }}/api/static/js/usage-widget.js?v=2" defer></script>
     <script>
     document.addEventListener("DOMContentLoaded", async () => {
         try {

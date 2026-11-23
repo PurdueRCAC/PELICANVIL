@@ -89,4 +89,36 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     widget.style.display = "";
   } catch (_) {}
+
+  // Popular datasets rankings
+  try {
+    const rankResp = await fetch(`${window.ROOT_PATH}/api/usage/rankings?limit=5`);
+    if (!rankResp.ok) return;
+    const rankings = await rankResp.json();
+
+    const section = document.getElementById("popular-datasets");
+    const list = document.getElementById("popular-datasets-list");
+    const periodEl = document.getElementById("popular-datasets-period");
+    if (!section || !rankings.all_time.length) return;
+
+    const trending = new Set(rankings.trending || []);
+
+    periodEl.textContent = "All time";
+
+    list.innerHTML = rankings.all_time.map((d, i) => {
+      const isTrending = trending.has(d.dataset_name);
+      const rank = i + 1;
+      const medalClass = rank <= 3 ? ` popular-rank-${rank}` : "";
+      return `
+        <a class="popular-dataset-row" href="${window.ROOT_PATH}/datasets/category/${d.category || ""}">
+          <span class="popular-rank${medalClass}">${rank}</span>
+          <span class="popular-dataset-name">${d.dataset_name}</span>
+          ${isTrending ? '<span class="popular-trending-badge"><i class="ti ti-trending-up"></i> Trending</span>' : ""}
+          <span class="popular-dataset-stats">${d.download_count} downloads &middot; ${formatUsageBytes(d.total_bytes)}</span>
+        </a>
+      `;
+    }).join("");
+
+    section.style.display = "";
+  } catch (_) {}
 });

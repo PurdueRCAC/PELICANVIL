@@ -102,3 +102,68 @@ def get_usage_summary(days: int = 30) -> dict:
         "daily": daily,
         "by_category": by_category,
     }
+
+
+def get_dataset_rankings(limit: int = 10) -> dict:
+    con = _get_conn()
+    cur = con.cursor()
+
+    cur.execute(
+        "SELECT dataset_name, dataset_path, category,"
+        " COUNT(*) AS download_count,"
+        " COALESCE(SUM(size_bytes), 0) AS total_bytes,"
+        " COALESCE(SUM(file_count), 0) AS total_files"
+        " FROM download_events"
+        " GROUP BY dataset_name"
+        " ORDER BY download_count DESC"
+        " LIMIT ?",
+        (limit,),
+    )
+    all_time = [dict(r) for r in cur.fetchall()]
+
+    cur.execute(
+        "SELECT dataset_name, dataset_path, category,"
+        " COUNT(*) AS download_count,"
+        " COALESCE(SUM(size_bytes), 0) AS total_bytes"
+        " FROM download_events"
+        " WHERE created_at >= datetime('now', '-7 days')"
+        " GROUP BY dataset_name"
+        " ORDER BY download_count DESC"
+        " LIMIT ?",
+        (limit,),
+    )
+    this_week = [dict(r) for r in cur.fetchall()]
+
+    cur.execute(
+        "SELECT dataset_name, dataset_path, category,"
+        " COUNT(*) AS download_count,"
+        " COALESCE(SUM(size_bytes), 0) AS total_bytes"
+        " FROM download_events"
+        " WHERE created_at >= datetime('now', '-7 days')"
+        " GROUP BY dataset_name"
+        " ORDER BY total_bytes DESC"
+        " LIMIT ?",
+        (limit,),
+    )
+    biggest_this_week = [dict(r) for r in cur.fetchall()]
+
+    trending_names = set()
+    cur.execute(
+        "SELECT dataset_name,"
+        " SUM(CASE WHEN created_at >= datetime('now', '-7 days') THEN 1 ELSE 0 END) AS recent,"
+        " SUM(CASE WHEN created_at < datetime('now', '-7 days') AND created_at >= datetime('now', '-14 days') THEN 1 ELSE 0 END) AS previous"
+        " FROM download_events"
+        " WHERE created_at >= datetime('now', '-14 days')"
+        " GROUP BY dataset_name"
+        " HAVING recent > previous AND recent >= 2"
+    )
+    for r in cur.fetchall():
+        trending_names.add(r["dataset_name"])
+
+    con.close()
+    return {
+        "all_time": all_time,
+        "this_week": this_week,
+        "biggest_this_week": biggest_this_week,
+        "trending": list(trending_names),
+    }

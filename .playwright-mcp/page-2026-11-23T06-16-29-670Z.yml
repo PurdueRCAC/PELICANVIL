@@ -1,0 +1,196 @@
+- generic [active] [ref=f2e1]:
+  - navigation [ref=f2e2]:
+    - generic [ref=f2e3]:
+      - link [ref=f2e4] [cursor=pointer]:
+        - /url: /
+        - img "PELICANVIL logo" [ref=f2e5]
+      - list [ref=f2e6]:
+        - listitem [ref=f2e7]:
+          - link "Explore Datasets" [ref=f2e8] [cursor=pointer]:
+            - /url: /datasets
+        - listitem [ref=f2e9]:
+          - link "Quick Access" [ref=f2e10] [cursor=pointer]:
+            - /url: /quick-access
+        - listitem [ref=f2e11]:
+          - link "Downloads" [ref=f2e12] [cursor=pointer]:
+            - /url: /downloads
+        - listitem [ref=f2e13]:
+          - link "Docs" [ref=f2e14] [cursor=pointer]:
+            - /url: /documentation
+    - generic [ref=f2e15]:
+      - button "Toggle light/dark theme" [ref=f2e16] [cursor=pointer]
+      - img "Purdue logo" [ref=f2e21]
+  - generic [ref=f2e22]:
+    - generic [ref=f2e23]: 
+    - paragraph [ref=f2e24]:
+      - text: As of November 23, 2026, there are
+      - strong [ref=f2e25]: "3"
+      - text: publicly available datasets across
+      - strong [ref=f2e26]: "3"
+      - text: categories.
+  - main [ref=f2e27]:
+    - generic [ref=f2e28]:
+      - generic [ref=f2e29]:
+        - heading "Bring data to your workflows, not the other way around" [level=1] [ref=f2e30]
+        - paragraph [ref=f2e31]:
+          - generic [ref=f2e32]: 
+          - generic [ref=f2e33]: Discover datasets, grab a path or snippet, and get back to your analysis.
+      - generic [ref=f2e34]:
+        - link [ref=f2e35] [cursor=pointer]:
+          - /url: /datasets
+          - generic [ref=f2e37]:
+            - heading "Explore Datasets " [level=2] [ref=f2e38]:
+              - text: Explore Datasets
+              - generic [ref=f2e39]: 
+            - paragraph [ref=f2e40]: Don't have a Pelican endpoint yet? Browse a wide array of already-indexed datasets, complete with endpoints and usage examples.
+        - link [ref=f2e41] [cursor=pointer]:
+          - /url: /quick-access
+          - generic [ref=f2e43]:
+            - heading "Quick Access " [level=2] [ref=f2e44]:
+              - text: Quick Access
+              - generic [ref=f2e45]: 
+            - paragraph [ref=f2e46]: Already have an endpoint? Generate usage snippets and download datasets straight to your allocations.
+      - generic [ref=f2e47]:
+        - generic [ref=f2e48]:
+          - generic [ref=f2e49]: 
+          - generic [ref=f2e50]: System Status
+          - generic [ref=f2e51]: Last checked 1 min ago
+        - generic [ref=f2e52]:
+          - generic [ref=f2e53]:
+            - generic [ref=f2e55]: Core Service
+            - generic [ref=f2e56]: App and database healthy
+          - generic [ref=f2e57]:
+            - generic [ref=f2e59]: Federation Access
+            - generic [ref=f2e60]: OSDF federation reachable
+          - generic [ref=f2e61]:
+            - generic [ref=f2e63]: Downloads
+            - generic [ref=f2e64]: Dataset transfers working
+      - generic [ref=f2e65]:
+        - generic [ref=f2e66]:
+          - generic [ref=f2e67]: 
+          - generic [ref=f2e68]: Download Activity
+          - generic [ref=f2e69]: Last 30 days
+        - generic [ref=f2e70]:
+          - generic [ref=f2e71]:
+            - generic [ref=f2e72]: 64 GB
+            - generic [ref=f2e73]: Downloaded
+          - generic [ref=f2e74]:
+            - generic [ref=f2e75]: "231"
+            - generic [ref=f2e76]: Files
+          - generic [ref=f2e77]:
+            - generic [ref=f2e78]: "25"
+            - generic [ref=f2e79]: Sessions
+          - generic [ref=f2e80]:
+            - generic [ref=f2e81]: 64 GB
+            - generic [ref=f2e82]: All Time
+        - generic [ref=f2e83]:
+          - img [ref=f2e84]:
+            - 'generic "2026-10-25: 8.5 GB" [ref=f2e85]'
+            - 'generic "2026-10-26: 7.3 GB" [ref=f2e86]'
+            - 'generic "2026-10-28: 4.1 GB" [ref=f2e87]'
+            - 'generic "2026-10-29: 3.7 GB" [ref=f2e88]'
+            - 'generic "2026-10-30: 3.3 GB" [ref=f2e89]'
+            - 'generic "2026-11-02: 4.4 GB" [ref=f2e90]'
+            - 'generic "2026-11-03: 3.6 GB" [ref=f2e91]'
+            - 'generic "2026-11-04: 1.3 GB" [ref=f2e92]'
+            - 'generic "2026-11-06: 1.4 GB" [ref=f2e93]'
+            - 'generic "2026-11-07: 728 MB" [ref=f2e94]'
+            - 'generic "2026-11-08: 374 MB" [ref=f2e95]'
+            - 'generic "2026-11-11: 6.9 GB" [ref=f2e96]'
+            - 'generic "2026-11-15: 2.4 GB" [ref=f2e97]'
+            - 'generic "2026-11-16: 3.3 GB" [ref=f2e98]'
+            - 'generic "2026-11-17: 3.4 GB" [ref=f2e99]'
+            - 'generic "2026-11-20: 4.4 GB" [ref=f2e100]'
+            - 'generic "2026-11-22: 827 MB" [ref=f2e101]'
+            - 'generic "2026-11-23: 3.7 GB" [ref=f2e102]'
+          - generic [ref=f2e103]:
+            - generic [ref=f2e104]: 10-25
+            - generic [ref=f2e105]: 11-23
+        - generic [ref=f2e106]:
+          - generic [ref=f2e107]:
+            - generic [ref=f2e108]: physics
+            - generic [ref=f2e109]: 45 GB
+          - generic [ref=f2e110]:
+            - generic [ref=f2e111]: earth-climate
+            - generic [ref=f2e112]: 10 GB
+          - generic [ref=f2e113]:
+            - generic [ref=f2e114]: machine-learning
+            - generic [ref=f2e115]: 8.5 GB
+      - generic [ref=f2e116]:
+        - generic [ref=f2e117]:
+          - generic [ref=f2e118]: 
+          - generic [ref=f2e119]: Most Popular
+          - generic [ref=f2e120]: All time
+        - generic [ref=f2e121]:
+          - link "1 Test Dataset 3  Trending 16 downloads · 45 GB" [ref=f2e122] [cursor=pointer]:
+            - /url: /datasets/category/physics
+            - generic [ref=f2e123]: "1"
+            - generic [ref=f2e124]: Test Dataset 3
+            - generic [ref=f2e125]:
+              - generic [ref=f2e126]: 
+              - text: Trending
+            - generic [ref=f2e127]: 16 downloads · 45 GB
+          - link "2 Test Dataset 1 5 downloads · 10 GB" [ref=f2e128] [cursor=pointer]:
+            - /url: /datasets/category/earth-climate
+            - generic [ref=f2e129]: "2"
+            - generic [ref=f2e130]: Test Dataset 1
+            - generic [ref=f2e131]: 5 downloads · 10 GB
+          - link "3 Test Dataset 2 4 downloads · 8.5 GB" [ref=f2e132] [cursor=pointer]:
+            - /url: /datasets/category/machine-learning
+            - generic [ref=f2e133]: "3"
+            - generic [ref=f2e134]: Test Dataset 2
+            - generic [ref=f2e135]: 4 downloads · 8.5 GB
+      - generic [ref=f2e136]:
+        - generic [ref=f2e137]:
+          - generic [ref=f2e138]: 
+          - generic [ref=f2e139]: Recently Added
+        - generic [ref=f2e140]:
+          - link "Test Dataset 3 NetCDF" [ref=f2e141] [cursor=pointer]:
+            - /url: /datasets
+            - generic [ref=f2e142]: Test Dataset 3
+            - generic [ref=f2e143]: NetCDF
+          - link "Test Dataset 2 CSV" [ref=f2e144] [cursor=pointer]:
+            - /url: /datasets
+            - generic [ref=f2e145]: Test Dataset 2
+            - generic [ref=f2e146]: CSV
+          - link "Test Dataset 1 HDF5" [ref=f2e147] [cursor=pointer]:
+            - /url: /datasets
+            - generic [ref=f2e148]: Test Dataset 1
+            - generic [ref=f2e149]: HDF5
+    - complementary [ref=f2e150]:
+      - generic [ref=f2e151]:
+        - heading "Browse by category" [level=2] [ref=f2e152]
+        - paragraph [ref=f2e153]: A growing collection of indexed datasets across research domains.
+        - generic [ref=f2e154]:
+          - link "Earth / Climate " [ref=f2e155] [cursor=pointer]:
+            - /url: /datasets/category/earth-climate
+            - generic [ref=f2e156]: Earth / Climate
+            - generic [ref=f2e157]: 
+          - link "Machine Learning " [ref=f2e158] [cursor=pointer]:
+            - /url: /datasets/category/machine-learning
+            - generic [ref=f2e159]: Machine Learning
+            - generic [ref=f2e160]: 
+          - link "Physics " [ref=f2e161] [cursor=pointer]:
+            - /url: /datasets/category/physics
+            - generic [ref=f2e162]: Physics
+            - generic [ref=f2e163]: 
+          - link "Genomics " [ref=f2e164] [cursor=pointer]:
+            - /url: /datasets/category/genomics
+            - generic [ref=f2e165]: Genomics
+            - generic [ref=f2e166]: 
+  - contentinfo [ref=f2e167]:
+    - heading "Powered by Pelican" [level=2] [ref=f2e168]
+    - paragraph [ref=f2e169]:
+      - text: PELICANVIL is built on top of the
+      - link "Pelican Platform" [ref=f2e170] [cursor=pointer]:
+        - /url: https://pelicanplatform.org/
+      - text: ", the open-source data federation software behind the Open Science Data Federation."
+    - generic [ref=f2e171]:
+      - link "Pelican Platform" [ref=f2e172] [cursor=pointer]:
+        - /url: https://pelicanplatform.org/
+      - link "GitHub" [ref=f2e173] [cursor=pointer]:
+        - /url: https://github.com/PelicanPlatform
+      - link "Usage Docs" [ref=f2e174] [cursor=pointer]:
+        - /url: https://docs.pelicanplatform.org/about-pelican
+      - link "PelicanFS" [ref=f2e175] [cursor=pointer]:
+        - /url: https://github.com/PelicanPlatform/pelicanfs
